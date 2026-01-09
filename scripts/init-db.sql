@@ -103,74 +103,99 @@ INSERT INTO log_service.log_sources (name, type, configuration, is_active) VALUE
 -- Alert rules
 CREATE TABLE alert_service.alert_rules (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    condition JSONB NOT NULL,
-    severity VARCHAR(20) NOT NULL CHECK (severity IN ('critical', 'high', 'medium', 'low')),
-    is_active BOOLEAN DEFAULT true,
-    created_by BIGINT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description VARCHAR(500),
+    type VARCHAR(20) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    conditions JSONB,
+    anomaly_threshold DOUBLE PRECISION,
+    time_window_minutes INTEGER,
+    threshold_count INTEGER,
+    threshold INTEGER,
+    services VARCHAR(500),
+    service_name VARCHAR(100),
+    log_levels VARCHAR(100),
+    log_level VARCHAR(20),
+    cooldown_minutes INTEGER DEFAULT 15,
+    notify_on_recovery BOOLEAN DEFAULT false,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    created_by VARCHAR(100),
+    last_triggered_at TIMESTAMP,
+    trigger_count BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT chk_type CHECK (type IN ('ANOMALY_DETECTION', 'THRESHOLD', 'PATTERN_MATCH', 'ERROR_RATE', 'CUSTOM')),
+    CONSTRAINT chk_severity CHECK (severity IN ('INFO', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'))
 );
 
 -- Notification channels
 CREATE TABLE alert_service.notification_channels (
     id BIGSERIAL PRIMARY KEY,
-    type VARCHAR(50) NOT NULL CHECK (type IN ('email', 'slack', 'webhook', 'sms')),
-    name VARCHAR(100) NOT NULL,
-    configuration JSONB NOT NULL,
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Alert rule channels mapping
-CREATE TABLE alert_service.alert_rule_channels (
-    rule_id BIGINT REFERENCES alert_service.alert_rules(id) ON DELETE CASCADE,
-    channel_id BIGINT REFERENCES alert_service.notification_channels(id) ON DELETE CASCADE,
-    PRIMARY KEY (rule_id, channel_id)
+    alert_rule_id BIGINT,
+    type VARCHAR(20) NOT NULL,
+    name VARCHAR(100),
+    description VARCHAR(500),
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    config JSONB NOT NULL,
+    configuration JSONB,
+    recipients VARCHAR(500),
+    slack_channel VARCHAR(200),
+    webhook_url VARCHAR(500),
+    webhook_method VARCHAR(10),
+    webhook_headers JSONB,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    last_used_at TIMESTAMP,
+    last_success_at TIMESTAMP,
+    last_failure_at TIMESTAMP,
+    success_count BIGINT NOT NULL DEFAULT 0,
+    failure_count BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT fk_notification_channel_rule FOREIGN KEY (alert_rule_id) REFERENCES alert_service.alert_rules(id) ON DELETE CASCADE,
+    CONSTRAINT chk_channel_type CHECK (type IN ('EMAIL', 'SLACK', 'WEBHOOK'))
 );
 
 -- Alert history
 CREATE TABLE alert_service.alerts (
     id BIGSERIAL PRIMARY KEY,
-    rule_id BIGINT REFERENCES alert_service.alert_rules(id),
-    severity VARCHAR(20) NOT NULL CHECK (severity IN ('critical', 'high', 'medium', 'low')),
-    title VARCHAR(255) NOT NULL,
-    message TEXT,
-    metadata JSONB,
-    status VARCHAR(20) DEFAULT 'open' CHECK (status IN ('open', 'acknowledged', 'resolved')),
-    triggered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    alert_rule_id BIGINT NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    anomaly_detection_id VARCHAR(255),
+    log_id VARCHAR(255),
+    service VARCHAR(100),
+    context JSONB,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     acknowledged_at TIMESTAMP,
-    acknowledged_by BIGINT,
+    acknowledged_by VARCHAR(100),
     resolved_at TIMESTAMP,
-    resolved_by BIGINT
-);
-
--- Alert notifications log
-CREATE TABLE alert_service.alert_notifications (
-    id BIGSERIAL PRIMARY KEY,
-    alert_id BIGINT REFERENCES alert_service.alerts(id) ON DELETE CASCADE,
-    channel_id BIGINT REFERENCES alert_service.notification_channels(id),
-    status VARCHAR(20) NOT NULL CHECK (status IN ('sent', 'failed', 'pending')),
-    error_message TEXT,
-    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    resolved_by VARCHAR(100),
+    resolution_notes TEXT,
+    notification_sent BOOLEAN NOT NULL DEFAULT false,
+    notification_sent_at TIMESTAMP,
+    notification_failure_count INTEGER NOT NULL DEFAULT 0,
+    last_notification_error TEXT,
+    CONSTRAINT fk_alert_rule FOREIGN KEY (alert_rule_id) REFERENCES alert_service.alert_rules(id) ON DELETE CASCADE,
+    CONSTRAINT chk_alert_status CHECK (status IN ('OPEN', 'ACKNOWLEDGED', 'RESOLVED', 'FALSE_POSITIVE')),
+    CONSTRAINT chk_alert_severity CHECK (severity IN ('INFO', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'))
 );
 
 -- Create indexes for performance
-CREATE INDEX idx_alerts_triggered_at ON alert_service.alerts(triggered_at DESC);
+CREATE INDEX idx_alert_rules_enabled ON alert_service.alert_rules(enabled);
+CREATE INDEX idx_alert_rules_type ON alert_service.alert_rules(type);
+CREATE INDEX idx_alert_rules_severity ON alert_service.alert_rules(severity);
+CREATE INDEX idx_alerts_rule ON alert_service.alerts(alert_rule_id);
 CREATE INDEX idx_alerts_status ON alert_service.alerts(status);
-CREATE INDEX idx_alerts_rule_id ON alert_service.alerts(rule_id);
+CREATE INDEX idx_alerts_created_at ON alert_service.alerts(created_at);
+CREATE INDEX idx_alerts_anomaly_id ON alert_service.alerts(anomaly_detection_id);
+CREATE INDEX idx_alerts_service ON alert_service.alerts(service);
 CREATE INDEX idx_alerts_severity ON alert_service.alerts(severity);
-
--- Insert default email notification channel
-INSERT INTO alert_service.notification_channels (type, name, configuration, is_active) VALUES
-    ('email', 'Default Email', '{"smtp_host": "smtp.example.com", "smtp_port": 587, "from": "alerts@example.com"}', false);
-
--- Insert default alert rule for high error rate
-INSERT INTO alert_service.alert_rules (name, description, condition, severity, is_active, created_by) VALUES
-    ('High Error Rate', 'Triggers when error rate exceeds 10% in 5 minutes', 
-     '{"metric": "error_rate", "threshold": 0.1, "window": "5m"}', 
-     'high', true, 1);
+CREATE INDEX idx_alerts_notification_sent ON alert_service.alerts(notification_sent);
+CREATE INDEX idx_notification_channels_rule ON alert_service.notification_channels(alert_rule_id);
+CREATE INDEX idx_notification_channels_type ON alert_service.notification_channels(type);
+CREATE INDEX idx_notification_channels_enabled ON alert_service.notification_channels(enabled);
 
 -- ============================================================================
 -- ML SERVICE SCHEMA
@@ -195,12 +220,16 @@ CREATE TABLE ml_service.anomaly_detections (
     id BIGSERIAL PRIMARY KEY,
     model_id BIGINT REFERENCES ml_service.ml_models(id),
     log_id VARCHAR(255) NOT NULL,
-    anomaly_score DOUBLE PRECISION NOT NULL CHECK (anomaly_score >= 0 AND anomaly_score <= 1),
+    anomaly_score DOUBLE PRECISION NOT NULL,
     is_anomaly BOOLEAN NOT NULL,
-    features JSONB,
-    detected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    confidence DOUBLE PRECISION NOT NULL,
     model_version VARCHAR(50),
-    confidence DOUBLE PRECISION
+    features JSONB,
+    detected_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    level VARCHAR(20),
+    message TEXT,
+    service VARCHAR(100),
+    log_timestamp TIMESTAMP
 );
 
 -- Model training history
@@ -250,13 +279,13 @@ CREATE TRIGGER update_alert_rules_updated_at BEFORE UPDATE ON alert_service.aler
 
 -- View for active alerts summary
 CREATE OR REPLACE VIEW alert_service.active_alerts_summary AS
-SELECT 
+SELECT
     severity,
     COUNT(*) as count,
-    MIN(triggered_at) as oldest_alert,
-    MAX(triggered_at) as newest_alert
+    MIN(created_at) as oldest_alert,
+    MAX(created_at) as newest_alert
 FROM alert_service.alerts
-WHERE status = 'open'
+WHERE status = 'OPEN'
 GROUP BY severity;
 
 -- View for anomaly detection summary

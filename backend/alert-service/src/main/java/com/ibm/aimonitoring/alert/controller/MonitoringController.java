@@ -97,7 +97,7 @@ public class MonitoringController {
         long lowAlerts = alertRepository.countBySeverity(Severity.LOW);
         
         // Get recent alerts count
-        long recentAlerts = alertRepository.countByTriggeredAtAfter(since);
+        long recentAlerts = alertRepository.countByCreatedAtAfter(since);
         
         // Get anomaly statistics
         long totalAnomalies = anomalyDetectionRepository.count();
@@ -185,7 +185,7 @@ public class MonitoringController {
         for (int i = 23; i >= 0; i--) {
             LocalDateTime hourStart = now.minusHours(i);
             LocalDateTime hourEnd = hourStart.plusHours(1);
-            long count = alertRepository.countByTriggeredAtBetween(hourStart, hourEnd);
+            long count = alertRepository.countByCreatedAtBetween(hourStart, hourEnd);
             hourlyCounts.put(i, count);
         }
         
