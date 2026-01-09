@@ -25,7 +25,6 @@ import java.util.Map;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class NotificationDispatcher {
 
     private final NotificationChannelRepository channelRepository;

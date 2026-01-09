@@ -10,7 +10,7 @@ spring:
       routes:
         # Log Ingestion Service Routes
         - id: log-ingestion-service
-          uri: http://localhost:8081
+          uri: ${LOG_INGESTION_URL:http://localhost:8081}
           predicates:
             - Path=/api/v1/logs/**
           filters:
@@ -24,9 +24,9 @@ spring:
                 redis-rate-limiter.burstCapacity: 20
                 redis-rate-limiter.requestedTokens: 1
         
-        # Log Processor Service Routes (Health check)
+        # Log Processor Service Routes
         - id: log-processor-service
-          uri: http://localhost:8082
+          uri: ${LOG_PROCESSOR_URL:http://localhost:8082}
           predicates:
             - Path=/api/v1/processor/**
           filters:
@@ -34,6 +34,28 @@ spring:
               args:
                 name: logProcessorCircuitBreaker
                 fallbackUri: forward:/fallback/log-processor
+        
+        # Alert Service Routes
+        - id: alert-service
+          uri: ${ALERT_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/v1/alerts/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: alertServiceCircuitBreaker
+                fallbackUri: forward:/fallback/alert-service
+        
+        # ML Service Routes
+        - id: ml-service
+          uri: ${ML_SERVICE_URL:http://localhost:8000}
+          predicates:
+            - Path=/api/v1/ml/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: mlServiceCircuitBreaker
+                fallbackUri: forward:/fallback/ml-service
       
       # Global CORS configuration
       globalcors:
@@ -86,6 +108,26 @@ resilience4j:
         waitDurationInOpenState: 5s
         failureRateThreshold: 50
         eventConsumerBufferSize: 10
+      
+      alertServiceCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+      
+      mlServiceCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
 
   timelimiter:
     instances:
@@ -93,6 +135,10 @@ resilience4j:
         timeoutDuration: 3s
       logProcessorCircuitBreaker:
         timeoutDuration: 3s
+      alertServiceCircuitBreaker:
+        timeoutDuration: 3s
+      mlServiceCircuitBreaker:
+        timeoutDuration: 5s
 
 # Actuator endpoints
 management:
