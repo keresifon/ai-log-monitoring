@@ -75,6 +75,16 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
      * Count alerts by severity
      */
     long countBySeverity(Severity severity);
+    
+    /**
+     * Count alerts triggered after a specific time
+     */
+    long countByTriggeredAtAfter(LocalDateTime dateTime);
+    
+    /**
+     * Count alerts triggered within a time range
+     */
+    long countByTriggeredAtBetween(LocalDateTime start, LocalDateTime end);
 
     /**
      * Count alerts for a rule within time window

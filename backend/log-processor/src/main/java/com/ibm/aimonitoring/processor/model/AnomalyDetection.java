@@ -29,7 +29,7 @@ public class AnomalyDetection {
     @Column(name = "log_id", nullable = false)
     private String logId;
 
-    @Column(name = "anomaly_score", nullable = false, precision = 5, scale = 4)
+    @Column(name = "anomaly_score", nullable = false)
     private Double anomalyScore;
 
     @Column(name = "is_anomaly", nullable = false)
@@ -44,7 +44,7 @@ public class AnomalyDetection {
     @Column(name = "model_version")
     private String modelVersion;
 
-    @Column(name = "confidence", precision = 5, scale = 4)
+    @Column(name = "confidence")
     private Double confidence;
 
     @PrePersist

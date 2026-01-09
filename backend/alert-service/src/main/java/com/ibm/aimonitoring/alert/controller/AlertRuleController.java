@@ -284,7 +284,7 @@ public class AlertRuleController {
                     String message = String.format(
                             "Alert rule '%s' test completed. Rule is %s and configured for %s severity alerts.",
                             rule.getName(),
-                            rule.isEnabled() ? "enabled" : "disabled",
+                            rule.getEnabled() ? "enabled" : "disabled",
                             rule.getSeverity()
                     );
                     return ResponseEntity.ok(message);
@@ -302,7 +302,7 @@ public class AlertRuleController {
                 .description(rule.getDescription())
                 .type(rule.getType())
                 .severity(rule.getSeverity())
-                .enabled(rule.isEnabled())
+                .enabled(rule.getEnabled())
                 .anomalyThreshold(rule.getAnomalyThreshold())
                 .conditions(rule.getConditions())
                 .serviceName(rule.getServiceName())
@@ -310,7 +310,7 @@ public class AlertRuleController {
                 .timeWindowMinutes(rule.getTimeWindowMinutes())
                 .threshold(rule.getThreshold())
                 .cooldownMinutes(rule.getCooldownMinutes())
-                .notifyOnRecovery(rule.isNotifyOnRecovery())
+                .notifyOnRecovery(rule.getNotifyOnRecovery())
                 .createdAt(rule.getCreatedAt())
                 .updatedAt(rule.getUpdatedAt())
                 .build();

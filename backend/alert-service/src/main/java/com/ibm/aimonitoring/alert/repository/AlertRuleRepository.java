@@ -2,6 +2,7 @@ package com.ibm.aimonitoring.alert.repository;
 
 import com.ibm.aimonitoring.alert.model.AlertRule;
 import com.ibm.aimonitoring.alert.model.RuleType;
+import com.ibm.aimonitoring.alert.model.Severity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,9 +28,24 @@ public interface AlertRuleRepository extends JpaRepository<AlertRule, Long> {
     List<AlertRule> findByEnabledTrue();
 
     /**
+     * Find all rules by type
+     */
+    List<AlertRule> findByType(RuleType type);
+    
+    /**
      * Find enabled rules by type
      */
     List<AlertRule> findByTypeAndEnabledTrue(RuleType type);
+    
+    /**
+     * Find rules by severity
+     */
+    List<AlertRule> findBySeverity(Severity severity);
+    
+    /**
+     * Find rules by service name
+     */
+    List<AlertRule> findByServiceName(String serviceName);
 
     /**
      * Find rules monitoring a specific service
@@ -54,6 +70,11 @@ public interface AlertRuleRepository extends JpaRepository<AlertRule, Long> {
      * Count enabled rules
      */
     long countByEnabledTrue();
+    
+    /**
+     * Count rules by type
+     */
+    long countByType(RuleType type);
 }
 
 // Made with Bob

@@ -70,7 +70,13 @@ public class EmailNotificationService implements NotificationService {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-        helper.setFrom(fromEmail, fromName);
+        try {
+            helper.setFrom(fromEmail, fromName);
+        } catch (java.io.UnsupportedEncodingException e) {
+            // Fallback to email without personal name
+            helper.setFrom(fromEmail);
+            log.warn("Failed to set from name, using email only: {}", e.getMessage());
+        }
         helper.setTo(recipient);
         helper.setSubject(buildSubject(alert));
         helper.setText(buildHtmlBody(alert), true);

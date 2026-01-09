@@ -32,6 +32,13 @@ spring:
           initial-interval: 5000
           max-attempts: 3
           multiplier: 2.0
+  
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 100
 
 # RabbitMQ Queue Configuration
 rabbitmq:
@@ -43,8 +50,8 @@ server:
 
 # Elasticsearch Configuration
 elasticsearch:
-  host: localhost
-  port: 9200
+  host: ${ELASTICSEARCH_HOST:localhost}
+  port: ${ELASTICSEARCH_PORT:9200}
   index:
     name: logs
     shards: 1
@@ -57,15 +64,6 @@ ml:
     timeout: 5000
     retry:
       max-attempts: 3
-
-# Enable async processing
-spring:
-  task:
-    execution:
-      pool:
-        core-size: 5
-        max-size: 10
-        queue-capacity: 100
 
 management:
   endpoints:

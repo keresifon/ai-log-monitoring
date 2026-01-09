@@ -69,6 +69,30 @@ public interface AnomalyDetectionRepository extends JpaRepository<AnomalyDetecti
         @Param("startTime") LocalDateTime startTime,
         @Param("endTime") LocalDateTime endTime
     );
+    
+    /**
+     * Count anomalies detected after a specific time
+     */
+    @Query("SELECT COUNT(ad) FROM AnomalyDetection ad WHERE ad.detectedAt >= :dateTime " +
+           "AND ad.isAnomaly = true")
+    long countByDetectedAtAfter(@Param("dateTime") LocalDateTime dateTime);
+    
+    /**
+     * Count high-confidence anomalies detected after a specific time
+     */
+    @Query("SELECT COUNT(ad) FROM AnomalyDetection ad WHERE ad.detectedAt >= :dateTime " +
+           "AND ad.isAnomaly = true AND ad.confidence > :confidence")
+    long countByDetectedAtAfterAndConfidenceGreaterThan(
+        @Param("dateTime") LocalDateTime dateTime,
+        @Param("confidence") double confidence
+    );
+    
+    /**
+     * Count unprocessed anomalies
+     */
+    @Query("SELECT COUNT(ad) FROM AnomalyDetection ad WHERE ad.isAnomaly = true " +
+           "AND NOT EXISTS (SELECT 1 FROM Alert a WHERE a.anomalyDetectionId = ad.logId)")
+    long countUnprocessedAnomalies();
 
     /**
      * Find critical anomalies (high confidence and high score)

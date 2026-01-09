@@ -19,9 +19,24 @@ public interface NotificationChannelRepository extends JpaRepository<Notificatio
      * Find all enabled channels for an alert rule
      */
     List<NotificationChannel> findByAlertRuleIdAndEnabledTrue(Long alertRuleId);
+    
+    /**
+     * Find all channels for an alert rule
+     */
+    List<NotificationChannel> findByAlertRuleId(Long alertRuleId);
+    
+    /**
+     * Find all enabled channels
+     */
+    List<NotificationChannel> findByEnabledTrue();
 
     /**
      * Find channels by type
+     */
+    List<NotificationChannel> findByType(ChannelType type);
+    
+    /**
+     * Find enabled channels by type
      */
     List<NotificationChannel> findByTypeAndEnabledTrue(ChannelType type);
 
@@ -36,6 +51,16 @@ public interface NotificationChannelRepository extends JpaRepository<Notificatio
      * Count enabled channels for a rule
      */
     long countByAlertRuleIdAndEnabledTrue(Long alertRuleId);
+    
+    /**
+     * Count all enabled channels
+     */
+    long countByEnabledTrue();
+    
+    /**
+     * Count channels by type
+     */
+    long countByType(ChannelType type);
 }
 
 // Made with Bob

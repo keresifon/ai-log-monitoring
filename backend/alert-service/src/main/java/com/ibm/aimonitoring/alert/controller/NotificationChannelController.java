@@ -310,7 +310,7 @@ public class NotificationChannelController {
                 .name(channel.getName())
                 .description(channel.getDescription())
                 .configuration(channel.getConfiguration())
-                .enabled(channel.isEnabled())
+                .enabled(channel.getEnabled())
                 .successCount(channel.getSuccessCount())
                 .failureCount(channel.getFailureCount())
                 .lastSuccessAt(channel.getLastSuccessAt())

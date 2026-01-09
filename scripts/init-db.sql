@@ -195,10 +195,12 @@ CREATE TABLE ml_service.anomaly_detections (
     id BIGSERIAL PRIMARY KEY,
     model_id BIGINT REFERENCES ml_service.ml_models(id),
     log_id VARCHAR(255) NOT NULL,
-    anomaly_score DECIMAL(5,4) NOT NULL CHECK (anomaly_score >= 0 AND anomaly_score <= 1),
+    anomaly_score DOUBLE PRECISION NOT NULL CHECK (anomaly_score >= 0 AND anomaly_score <= 1),
     is_anomaly BOOLEAN NOT NULL,
     features JSONB,
-    detected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    detected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    model_version VARCHAR(50),
+    confidence DOUBLE PRECISION
 );
 
 -- Model training history

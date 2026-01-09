@@ -22,8 +22,8 @@ public class NotificationChannelDTO {
     private String description;
     private String configuration;
     private boolean enabled;
-    private int successCount;
-    private int failureCount;
+    private Long successCount;
+    private Long failureCount;
     private LocalDateTime lastSuccessAt;
     private LocalDateTime lastFailureAt;
     private LocalDateTime createdAt;

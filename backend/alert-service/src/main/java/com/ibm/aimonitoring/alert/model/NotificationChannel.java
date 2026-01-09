@@ -29,12 +29,18 @@ public class NotificationChannel {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "alert_rule_id", nullable = false)
+    @JoinColumn(name = "alert_rule_id")
     private AlertRule alertRule;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ChannelType type;
+    
+    @Column(length = 100)
+    private String name;
+    
+    @Column(length = 500)
+    private String description;
 
     @Column(nullable = false)
     @Builder.Default
@@ -43,6 +49,10 @@ public class NotificationChannel {
     // Channel-specific configuration (stored as JSON)
     @Column(columnDefinition = "jsonb", nullable = false)
     private String config;
+    
+    // Alternative name for configuration (used by controllers)
+    @Column(columnDefinition = "jsonb")
+    private String configuration;
 
     // For EMAIL: recipient email addresses (comma-separated)
     @Column(length = 500)
@@ -74,6 +84,12 @@ public class NotificationChannel {
 
     @Column(name = "last_used_at")
     private LocalDateTime lastUsedAt;
+    
+    @Column(name = "last_success_at")
+    private LocalDateTime lastSuccessAt;
+    
+    @Column(name = "last_failure_at")
+    private LocalDateTime lastFailureAt;
 
     @Column(name = "success_count")
     @Builder.Default
@@ -87,11 +103,13 @@ public class NotificationChannel {
     public void recordSuccess() {
         this.successCount++;
         this.lastUsedAt = LocalDateTime.now();
+        this.lastSuccessAt = LocalDateTime.now();
     }
 
     public void recordFailure() {
         this.failureCount++;
         this.lastUsedAt = LocalDateTime.now();
+        this.lastFailureAt = LocalDateTime.now();
     }
 }
 

@@ -60,17 +60,38 @@ public class AlertRule {
     @Column(name = "time_window_minutes")
     private Integer timeWindowMinutes;
 
-    // Threshold count for count-based rules
+    // Threshold count for count-based rules (also used as 'threshold' in controllers)
     @Column(name = "threshold_count")
     private Integer thresholdCount;
+    
+    // Generic threshold field for various rule types
+    private Integer threshold;
 
     // Services to monitor (comma-separated)
     @Column(length = 500)
     private String services;
+    
+    // Single service name for simpler rules
+    @Column(name = "service_name", length = 100)
+    private String serviceName;
 
     // Log levels to monitor (comma-separated)
     @Column(name = "log_levels", length = 100)
     private String logLevels;
+    
+    // Single log level for simpler rules
+    @Column(name = "log_level", length = 20)
+    private String logLevel;
+    
+    // Cooldown period in minutes before re-triggering
+    @Column(name = "cooldown_minutes")
+    @Builder.Default
+    private Integer cooldownMinutes = 15;
+    
+    // Whether to send notification when alert recovers
+    @Column(name = "notify_on_recovery")
+    @Builder.Default
+    private Boolean notifyOnRecovery = false;
 
     @OneToMany(mappedBy = "alertRule", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
