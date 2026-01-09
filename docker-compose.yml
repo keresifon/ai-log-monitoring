@@ -76,6 +76,30 @@ services:
     networks:
       - ai-monitoring-network
 
+  ml-service:
+    build:
+      context: ./backend/ml-service
+      dockerfile: Dockerfile
+    container_name: ai-monitoring-ml-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ml_models:/app/models
+    environment:
+      - MODEL_DIR=/app/models
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+    networks:
+      - ai-monitoring-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data:
     driver: local
@@ -84,6 +108,8 @@ volumes:
   es_data:
     driver: local
   rabbitmq_data:
+    driver: local
+  ml_models:
     driver: local
 
 networks:

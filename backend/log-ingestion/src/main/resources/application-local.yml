@@ -1,8 +1,0 @@
-spring:
-  datasource:
-    username: ${DB_USERNAME:admin}
-    password: ${DB_PASSWORD:admin123}
-  
-  rabbitmq:
-    username: ${RABBITMQ_USERNAME:admin}
-    password: ${RABBITMQ_PASSWORD:admin123}

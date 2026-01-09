@@ -1,0 +1,118 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  
+  cloud:
+    gateway:
+      routes:
+        # Log Ingestion Service Routes
+        - id: log-ingestion-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/v1/logs/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: logIngestionCircuitBreaker
+                fallbackUri: forward:/fallback/log-ingestion
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
+        
+        # Log Processor Service Routes (Health check)
+        - id: log-processor-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/v1/processor/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: logProcessorCircuitBreaker
+                fallbackUri: forward:/fallback/log-processor
+      
+      # Global CORS configuration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: 
+              - "http://localhost:4200"
+              - "http://localhost:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+      
+      # Default filters applied to all routes
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+  # Redis configuration for rate limiting
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+# Resilience4j Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      logIngestionCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+      
+      logProcessorCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+
+  timelimiter:
+    instances:
+      logIngestionCircuitBreaker:
+        timeoutDuration: 3s
+      logProcessorCircuitBreaker:
+        timeoutDuration: 3s
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+
+# Logging
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web: DEBUG
+    com.ibm.aimonitoring: DEBUG
+
+# Made with Bob
