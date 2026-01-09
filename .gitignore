@@ -67,4 +67,4 @@ kubeconfig
 *.tmp
 *.bak
 *.swp
-*~
+*~.env
