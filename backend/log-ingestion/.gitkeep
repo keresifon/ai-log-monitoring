@@ -1,0 +1,2 @@
+# Log Ingestion Service
+Spring Boot service for receiving logs from multiple sources
