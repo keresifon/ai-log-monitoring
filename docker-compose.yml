@@ -5,16 +5,16 @@ services:
     image: postgres:15-alpine
     container_name: ai-monitoring-postgres
     environment:
-      POSTGRES_DB: ai_monitoring
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: ${POSTGRES_DB:-ai_monitoring}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d ai_monitoring"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-ai_monitoring}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,8 +25,8 @@ services:
     image: redis:7-alpine
     container_name: ai-monitoring-redis
     ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     healthcheck:
@@ -42,10 +42,10 @@ services:
     container_name: ai-monitoring-elasticsearch
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=${ES_SECURITY_ENABLED:-false}
+      - "ES_JAVA_OPTS=${ES_JAVA_OPTS:--Xms512m -Xmx512m}"
     ports:
-      - "9200:9200"
+      - "${ES_PORT:-9200}:9200"
       - "9300:9300"
     volumes:
       - es_data:/usr/share/elasticsearch/data
@@ -61,8 +61,8 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: ai-monitoring-rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin123
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-changeme}
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -82,12 +82,17 @@ services:
       dockerfile: Dockerfile
     container_name: ai-monitoring-ml-service
     ports:
-      - "8000:8000"
+      - "${ML_SERVICE_PORT:-8000}:8000"
     volumes:
       - ml_models:/app/models
     environment:
       - MODEL_DIR=/app/models
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB:-ai_monitoring}
+      - DB_USER=${POSTGRES_USER:-admin}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-changeme}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/health || exit 1"]
       interval: 30s
@@ -98,6 +103,41 @@ services:
       - ai-monitoring-network
     depends_on:
       postgres:
+        condition: service_healthy
+
+  alert-service:
+    build:
+      context: ./backend/alert-service
+      dockerfile: Dockerfile
+    container_name: ai-monitoring-alert-service
+    ports:
+      - "${ALERT_SERVICE_PORT:-8083}:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-docker}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB:-ai_monitoring}
+      - DB_USER=${POSTGRES_USER:-admin}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - EMAIL_ENABLED=${EMAIL_ENABLED:-false}
+      - SLACK_ENABLED=${SLACK_ENABLED:-true}
+      - WEBHOOK_ENABLED=${WEBHOOK_ENABLED:-true}
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    networks:
+      - ai-monitoring-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ml-service:
         condition: service_healthy
 
 volumes:
