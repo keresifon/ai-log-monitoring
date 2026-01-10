@@ -73,6 +73,9 @@ management:
   endpoint:
     health:
       show-details: always
+  health:
+    mail:
+      enabled: false  # Disable mail health check to prevent service from being unhealthy when SMTP is not configured
   metrics:
     export:
       prometheus:

@@ -183,6 +183,7 @@ services:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-docker}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme}
       - LOG_INGESTION_URL=http://log-ingestion:8081
       - LOG_PROCESSOR_URL=http://log-processor:8082
       - ALERT_SERVICE_URL=http://alert-service:8083

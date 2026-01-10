@@ -73,6 +73,9 @@ management:
   endpoint:
     health:
       show-details: always
+  health:
+    elasticsearch:
+      enabled: false  # Disable ES health check - service will still log errors if ES operations fail
 
 logging:
   level:
