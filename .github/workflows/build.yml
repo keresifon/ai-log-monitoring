@@ -127,7 +127,8 @@ jobs:
         #working-directory: backend/log-ingestion
         #working-directory: backend/log-processor
         #working-directory: backend/alert-service
-        working-directory: backend/ml-service
+        working-directory: backend/api-gateway
+        #working-directory: backend/ml-service
         run: |
           mvn -B sonar:sonar \
             -Dsonar.projectKey=keresifon_ai-log-monitoring \
