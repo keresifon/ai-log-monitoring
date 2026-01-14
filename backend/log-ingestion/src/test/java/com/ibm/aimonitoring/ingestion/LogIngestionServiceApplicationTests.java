@@ -2,21 +2,27 @@ package com.ibm.aimonitoring.ingestion;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
-@SpringBootTest
-@TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:postgresql://localhost:5432/aimonitoring",
-    "spring.datasource.username=postgres",
-    "spring.datasource.password=postgres",
-    "spring.rabbitmq.host=localhost",
-    "spring.rabbitmq.port=5672",
-    "spring.jpa.hibernate.ddl-auto=create-drop"
-})
+/**
+ * Integration test for Spring Boot application context.
+ * Uses mocked RabbitMQ components to avoid external dependencies.
+ */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class LogIngestionServiceApplicationTests {
+
+    @MockBean
+    private RabbitTemplate rabbitTemplate;
+    
+    @MockBean
+    private RabbitAdmin rabbitAdmin;
 
     @Test
     void contextLoads() {
+        // This test verifies that the Spring application context loads successfully
+        // with mocked external dependencies
     }
 }
 
