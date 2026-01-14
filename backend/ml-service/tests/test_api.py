@@ -72,7 +72,7 @@ class TestModelInfo:
     
     def test_get_model_info(self, test_client):
         """Test getting model information"""
-        response = test_client.get("/api/v1/anomaly/model/info")
+        response = test_client.get("/api/v1/model/info")
         
         assert response.status_code == 200
         data = response.json()
