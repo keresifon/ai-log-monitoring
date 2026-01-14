@@ -124,7 +124,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        working-directory: backend/log-ingestion
+        #working-directory: backend/log-ingestion
+        #working-directory: backend/log-processor
+        #working-directory: backend/alert-service
+        working-directory: backend/ml-service
         run: |
           mvn -B sonar:sonar \
             -Dsonar.projectKey=keresifon_ai-log-monitoring \
