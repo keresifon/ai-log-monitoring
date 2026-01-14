@@ -120,7 +120,7 @@ jobs:
         run: |
           pytest tests/ -v --cov=app --cov-report=xml --cov-report=term
       
-      - name: Run SonarCloud Analysis - Log Ingestion
+      - name: Run SonarCloud Analysis
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -128,74 +128,10 @@ jobs:
         run: |
           mvn -B sonar:sonar \
             -Dsonar.projectKey=keresifon_ai-log-monitoring \
-            -Dsonar.projectName="AI Log Monitoring - Log Ingestion" \
+            -Dsonar.projectName="AI Log Monitoring System" \
             -Dsonar.organization=keresifon \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.sources=src/main/java \
             -Dsonar.tests=src/test/java \
             -Dsonar.java.binaries=target/classes \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-      
-      - name: Run SonarCloud Analysis - Log Processor
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        working-directory: backend/log-processor
-        run: |
-          mvn -B sonar:sonar \
-            -Dsonar.projectKey=keresifon_ai-log-monitoring-processor \
-            -Dsonar.projectName="AI Log Monitoring - Log Processor" \
-            -Dsonar.organization=keresifon \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.sources=src/main/java \
-            -Dsonar.tests=src/test/java \
-            -Dsonar.java.binaries=target/classes \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-      
-      - name: Run SonarCloud Analysis - Alert Service
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        working-directory: backend/alert-service
-        run: |
-          mvn -B sonar:sonar \
-            -Dsonar.projectKey=keresifon_ai-log-monitoring-alerts \
-            -Dsonar.projectName="AI Log Monitoring - Alert Service" \
-            -Dsonar.organization=keresifon \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.sources=src/main/java \
-            -Dsonar.tests=src/test/java \
-            -Dsonar.java.binaries=target/classes \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-      
-      - name: Run SonarCloud Analysis - API Gateway
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        working-directory: backend/api-gateway
-        run: |
-          mvn -B sonar:sonar \
-            -Dsonar.projectKey=keresifon_ai-log-monitoring-gateway \
-            -Dsonar.projectName="AI Log Monitoring - API Gateway" \
-            -Dsonar.organization=keresifon \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.sources=src/main/java \
-            -Dsonar.tests=src/test/java \
-            -Dsonar.java.binaries=target/classes \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-      
-      - name: SonarCloud Scan - ML Service (Python)
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: backend/ml-service
-          args: >
-            -Dsonar.projectKey=keresifon_ai-log-monitoring-ml
-            -Dsonar.projectName="AI Log Monitoring - ML Service"
-            -Dsonar.organization=keresifon
-            -Dsonar.sources=app
-            -Dsonar.tests=tests
-            -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.python.version=3.11
