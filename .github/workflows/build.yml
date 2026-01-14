@@ -76,14 +76,36 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       
-      - name: Build and Test All Java Services (Multi-Module)
-        working-directory: backend
+      - name: Build and Test log-ingestion
+        working-directory: backend/log-ingestion
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/aimonitoring
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: postgres
           SPRING_RABBITMQ_HOST: localhost
           SPRING_RABBITMQ_PORT: 5672
+        run: mvn -B clean verify
+      
+      - name: Build and Test log-processor
+        working-directory: backend/log-processor
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/aimonitoring
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
+          SPRING_RABBITMQ_HOST: localhost
+          SPRING_RABBITMQ_PORT: 5672
+        run: mvn -B clean verify
+      
+      - name: Build and Test alert-service
+        working-directory: backend/alert-service
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/aimonitoring
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
+        run: mvn -B clean verify
+      
+      - name: Build and Test api-gateway
+        working-directory: backend/api-gateway
         run: mvn -B clean verify
       
       - name: Install ML Service Dependencies
@@ -98,21 +120,18 @@ jobs:
         run: |
           pytest tests/ -v --cov=app --cov-report=xml --cov-report=term
       
-      - name: Aggregate JaCoCo Reports
-        working-directory: backend
-        run: |
-          echo "Aggregating coverage reports from all modules..."
-          ls -la */target/site/jacoco/ || true
-      
-      - name: Run SonarCloud Analysis (Multi-Module)
+      - name: Run SonarCloud Analysis
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        working-directory: backend
+        working-directory: backend/log-ingestion
         run: |
           mvn -B sonar:sonar \
             -Dsonar.projectKey=keresifon_ai-log-monitoring \
             -Dsonar.projectName="AI Log Monitoring System" \
             -Dsonar.organization=keresifon \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.coverage.jacoco.xmlReportPaths=log-ingestion/target/site/jacoco/jacoco.xml,log-processor/target/site/jacoco/jacoco.xml,alert-service/target/site/jacoco/jacoco.xml,api-gateway/target/site/jacoco/jacoco.xml
+            -Dsonar.sources=src/main/java \
+            -Dsonar.tests=src/test/java \
+            -Dsonar.java.binaries=target/classes \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
