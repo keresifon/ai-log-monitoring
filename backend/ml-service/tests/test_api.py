@@ -9,12 +9,26 @@ from main import app
 client = TestClient(app)
 
 
+class TestRootEndpoint:
+    """Test cases for root endpoint"""
+    
+    def test_root(self):
+        """Test root endpoint"""
+        response = client.get("/")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert "service" in data
+        assert "version" in data
+        assert "status" in data
+
+
 class TestHealthEndpoint:
     """Test cases for health check endpoint"""
     
     def test_health_check(self):
         """Test that health endpoint returns 200 OK"""
-        response = client.get("/health")
+        response = client.get("/api/v1/health")
         
         assert response.status_code == 200
         data = response.json()
@@ -24,7 +38,7 @@ class TestHealthEndpoint:
     
     def test_readiness_check(self):
         """Test readiness endpoint"""
-        response = client.get("/ready")
+        response = client.get("/api/v1/ready")
         
         assert response.status_code == 200
         data = response.json()
@@ -42,5 +56,7 @@ class TestModelInfo:
         assert response.status_code == 200
         data = response.json()
         assert "status" in data
+        # Model won't be loaded in tests, so status should be "not_loaded"
+        assert data["status"] == "not_loaded"
 
 # Made with Bob
