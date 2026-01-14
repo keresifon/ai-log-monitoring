@@ -25,6 +25,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ElasticsearchService {
 
+    private static final String FIELD_TIMESTAMP = "timestamp";
+    private static final String FIELD_LEVEL = "level";
+    private static final String FIELD_MESSAGE = "message";
+    private static final String FIELD_SERVICE = "service";
+    private static final String FIELD_HOST = "host";
+    private static final String FIELD_ENVIRONMENT = "environment";
+    private static final String FIELD_TRACE_ID = "traceId";
+    private static final String FIELD_SPAN_ID = "spanId";
+    private static final String FIELD_METADATA = "metadata";
+
     private final ElasticsearchClient elasticsearchClient;
 
     @Value("${elasticsearch.index.name:logs}")
@@ -67,15 +77,15 @@ public class ElasticsearchService {
                                     .numberOfReplicas(String.valueOf(numberOfReplicas))
                             )
                             .mappings(m -> m
-                                    .properties("timestamp", p -> p.date(d -> d.format("strict_date_optional_time")))
-                                    .properties("level", p -> p.keyword(k -> k))
-                                    .properties("message", p -> p.text(t -> t.analyzer("standard")))
-                                    .properties("service", p -> p.keyword(k -> k))
-                                    .properties("host", p -> p.keyword(k -> k))
-                                    .properties("environment", p -> p.keyword(k -> k))
-                                    .properties("traceId", p -> p.keyword(k -> k))
-                                    .properties("spanId", p -> p.keyword(k -> k))
-                                    .properties("metadata", p -> p.object(o -> o.enabled(true)))
+                                    .properties(FIELD_TIMESTAMP, p -> p.date(d -> d.format("strict_date_optional_time")))
+                                    .properties(FIELD_LEVEL, p -> p.keyword(k -> k))
+                                    .properties(FIELD_MESSAGE, p -> p.text(t -> t.analyzer("standard")))
+                                    .properties(FIELD_SERVICE, p -> p.keyword(k -> k))
+                                    .properties(FIELD_HOST, p -> p.keyword(k -> k))
+                                    .properties(FIELD_ENVIRONMENT, p -> p.keyword(k -> k))
+                                    .properties(FIELD_TRACE_ID, p -> p.keyword(k -> k))
+                                    .properties(FIELD_SPAN_ID, p -> p.keyword(k -> k))
+                                    .properties(FIELD_METADATA, p -> p.object(o -> o.enabled(true)))
                             )
                     );
 
@@ -122,18 +132,18 @@ public class ElasticsearchService {
     private Map<String, Object> convertToDocument(LogEntryDTO logEntry) {
         Map<String, Object> document = new HashMap<>();
         
-        document.put("timestamp", logEntry.getTimestamp() != null ? 
+        document.put(FIELD_TIMESTAMP, logEntry.getTimestamp() != null ?
                 logEntry.getTimestamp().toString() : null);
-        document.put("level", logEntry.getLevel());
-        document.put("message", logEntry.getMessage());
-        document.put("service", logEntry.getService());
-        document.put("host", logEntry.getHost());
-        document.put("environment", logEntry.getEnvironment());
-        document.put("traceId", logEntry.getTraceId());
-        document.put("spanId", logEntry.getSpanId());
+        document.put(FIELD_LEVEL, logEntry.getLevel());
+        document.put(FIELD_MESSAGE, logEntry.getMessage());
+        document.put(FIELD_SERVICE, logEntry.getService());
+        document.put(FIELD_HOST, logEntry.getHost());
+        document.put(FIELD_ENVIRONMENT, logEntry.getEnvironment());
+        document.put(FIELD_TRACE_ID, logEntry.getTraceId());
+        document.put(FIELD_SPAN_ID, logEntry.getSpanId());
         
         if (logEntry.getMetadata() != null) {
-            document.put("metadata", logEntry.getMetadata());
+            document.put(FIELD_METADATA, logEntry.getMetadata());
         }
         
         return document;

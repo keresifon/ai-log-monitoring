@@ -19,13 +19,16 @@ import java.util.Map;
 
 /**
  * Notification Dispatcher Service
- * 
+ *
  * Orchestrates sending notifications through multiple channels.
  * Handles channel selection, error handling, and async processing.
  */
 @Service
 @Slf4j
 public class NotificationDispatcher {
+
+    private static final String CHANNEL_NOT_FOUND = "Channel not found: ";
+    private static final String NO_SERVICE_FOR_CHANNEL_TYPE = "No service found for channel type: ";
 
     private final NotificationChannelRepository channelRepository;
     private final EmailNotificationService emailService;
@@ -104,7 +107,7 @@ public class NotificationDispatcher {
         NotificationService service = serviceMap.get(channel.getType());
         
         if (service == null) {
-            throw new NotificationException("No service found for channel type: " + channel.getType());
+            throw new NotificationException(NO_SERVICE_FOR_CHANNEL_TYPE + channel.getType());
         }
         
         if (!service.isEnabled()) {
@@ -128,7 +131,7 @@ public class NotificationDispatcher {
         NotificationService service = serviceMap.get(channel.getType());
         
         if (service == null) {
-            log.error("No service found for channel type: {}", channel.getType());
+            log.error(NO_SERVICE_FOR_CHANNEL_TYPE + "{}", channel.getType());
             return false;
         }
         
@@ -148,7 +151,7 @@ public class NotificationDispatcher {
      */
     public Map<String, Long> getChannelStatistics(Long channelId) {
         NotificationChannel channel = channelRepository.findById(channelId)
-            .orElseThrow(() -> new IllegalArgumentException("Channel not found: " + channelId));
+            .orElseThrow(() -> new IllegalArgumentException(CHANNEL_NOT_FOUND + channelId));
         
         return Map.of(
             "successCount", channel.getSuccessCount(),

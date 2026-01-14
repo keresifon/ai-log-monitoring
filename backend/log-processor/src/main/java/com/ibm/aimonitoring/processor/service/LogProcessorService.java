@@ -23,6 +23,24 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class LogProcessorService {
 
+    private static final String UNKNOWN_ENVIRONMENT = "unknown";
+    private static final String EXCEPTION_KEYWORD = "exception";
+    private static final String ERROR_KEYWORD = "error";
+    private static final String TIMEOUT_KEYWORD = "timeout";
+    private static final String CONNECTION_KEYWORD = "connection";
+    private static final String CONNECT_KEYWORD = "connect";
+    private static final String METADATA_KEY_ANOMALY_DETECTED = "anomalyDetected";
+    private static final String METADATA_KEY_ANOMALY_SCORE = "anomalyScore";
+    private static final String METADATA_KEY_ANOMALY_CONFIDENCE = "anomalyConfidence";
+    private static final String METADATA_KEY_ML_MODEL_VERSION = "mlModelVersion";
+    private static final String METADATA_KEY_PROCESSED_AT = "processedAt";
+    private static final String METADATA_KEY_PROCESSOR = "processor";
+    private static final String METADATA_KEY_MESSAGE_LENGTH = "messageLength";
+    private static final String METADATA_KEY_HAS_EXCEPTION = "hasException";
+    private static final String METADATA_KEY_HAS_TIMEOUT = "hasTimeout";
+    private static final String METADATA_KEY_HAS_CONNECTION = "hasConnection";
+    private static final String PROCESSOR_SERVICE_NAME = "log-processor-service";
+
     private final ElasticsearchService elasticsearchService;
     private final MLServiceClient mlServiceClient;
     private final AnomalyDetectionRepository anomalyDetectionRepository;
@@ -75,10 +93,10 @@ public class LogProcessorService {
                     logEntry.setMetadata(new HashMap<>());
                 }
                 
-                logEntry.getMetadata().put("anomalyDetected", prediction.getIsAnomaly());
-                logEntry.getMetadata().put("anomalyScore", prediction.getAnomalyScore());
-                logEntry.getMetadata().put("anomalyConfidence", prediction.getConfidence());
-                logEntry.getMetadata().put("mlModelVersion", prediction.getModelVersion());
+                logEntry.getMetadata().put(METADATA_KEY_ANOMALY_DETECTED, prediction.getIsAnomaly());
+                logEntry.getMetadata().put(METADATA_KEY_ANOMALY_SCORE, prediction.getAnomalyScore());
+                logEntry.getMetadata().put(METADATA_KEY_ANOMALY_CONFIDENCE, prediction.getConfidence());
+                logEntry.getMetadata().put(METADATA_KEY_ML_MODEL_VERSION, prediction.getModelVersion());
                 
                 // Store anomaly detection result in database
                 saveAnomalyDetection(logId, logEntry, prediction);
@@ -113,12 +131,12 @@ public class LogProcessorService {
             features.put("messageLength", logEntry.getMessage() != null ? logEntry.getMessage().length() : 0);
             features.put("level", logEntry.getLevel());
             features.put("service", logEntry.getService());
-            features.put("hasException", logEntry.getMetadata() != null &&
-                    Boolean.TRUE.equals(logEntry.getMetadata().get("hasException")));
-            features.put("hasTimeout", logEntry.getMetadata() != null &&
-                    Boolean.TRUE.equals(logEntry.getMetadata().get("hasTimeout")));
-            features.put("hasConnection", logEntry.getMetadata() != null &&
-                    Boolean.TRUE.equals(logEntry.getMetadata().get("hasConnection")));
+            features.put(METADATA_KEY_HAS_EXCEPTION, logEntry.getMetadata() != null &&
+                    Boolean.TRUE.equals(logEntry.getMetadata().get(METADATA_KEY_HAS_EXCEPTION)));
+            features.put(METADATA_KEY_HAS_TIMEOUT, logEntry.getMetadata() != null &&
+                    Boolean.TRUE.equals(logEntry.getMetadata().get(METADATA_KEY_HAS_TIMEOUT)));
+            features.put(METADATA_KEY_HAS_CONNECTION, logEntry.getMetadata() != null &&
+                    Boolean.TRUE.equals(logEntry.getMetadata().get(METADATA_KEY_HAS_CONNECTION)));
             
             String featuresJson = objectMapper.writeValueAsString(features);
             
@@ -165,7 +183,7 @@ public class LogProcessorService {
 
         // Set default environment if not provided
         if (logEntry.getEnvironment() == null || logEntry.getEnvironment().isEmpty()) {
-            logEntry.setEnvironment("unknown");
+            logEntry.setEnvironment(UNKNOWN_ENVIRONMENT);
         }
 
         return logEntry;
@@ -180,22 +198,22 @@ public class LogProcessorService {
             logEntry.setMetadata(new java.util.HashMap<>());
         }
 
-        logEntry.getMetadata().put("processedAt", Instant.now().toString());
-        logEntry.getMetadata().put("processor", "log-processor-service");
+        logEntry.getMetadata().put(METADATA_KEY_PROCESSED_AT, Instant.now().toString());
+        logEntry.getMetadata().put(METADATA_KEY_PROCESSOR, PROCESSOR_SERVICE_NAME);
 
         // Add message length for analytics
         if (logEntry.getMessage() != null) {
-            logEntry.getMetadata().put("messageLength", logEntry.getMessage().length());
+            logEntry.getMetadata().put(METADATA_KEY_MESSAGE_LENGTH, logEntry.getMessage().length());
         }
 
         // Extract error indicators
         if (logEntry.getMessage() != null) {
             String messageLower = logEntry.getMessage().toLowerCase();
-            logEntry.getMetadata().put("hasException", 
-                    messageLower.contains("exception") || messageLower.contains("error"));
-            logEntry.getMetadata().put("hasTimeout", messageLower.contains("timeout"));
-            logEntry.getMetadata().put("hasConnection", 
-                    messageLower.contains("connection") || messageLower.contains("connect"));
+            logEntry.getMetadata().put(METADATA_KEY_HAS_EXCEPTION,
+                    messageLower.contains(EXCEPTION_KEYWORD) || messageLower.contains(ERROR_KEYWORD));
+            logEntry.getMetadata().put(METADATA_KEY_HAS_TIMEOUT, messageLower.contains(TIMEOUT_KEYWORD));
+            logEntry.getMetadata().put(METADATA_KEY_HAS_CONNECTION,
+                    messageLower.contains(CONNECTION_KEYWORD) || messageLower.contains(CONNECT_KEYWORD));
         }
 
         return logEntry;

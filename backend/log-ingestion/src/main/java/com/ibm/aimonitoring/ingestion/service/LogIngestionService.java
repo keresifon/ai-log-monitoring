@@ -19,6 +19,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LogIngestionService {
 
+    private static final String UNKNOWN_ENVIRONMENT = "unknown";
+
     private final RabbitTemplate rabbitTemplate;
 
     /**
@@ -64,7 +66,7 @@ public class LogIngestionService {
         
         // Set default environment if not provided
         if (logEntry.getEnvironment() == null) {
-            logEntry.setEnvironment("unknown");
+            logEntry.setEnvironment(UNKNOWN_ENVIRONMENT);
         }
         
         // Add log ID to metadata

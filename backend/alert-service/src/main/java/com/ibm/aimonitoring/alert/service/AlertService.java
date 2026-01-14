@@ -18,7 +18,7 @@ import java.util.List;
 
 /**
  * Alert Service
- * 
+ *
  * Core service for alert management including creation,
  * acknowledgment, resolution, and querying.
  */
@@ -26,6 +26,9 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class AlertService {
+
+    private static final String ALERT_NOT_FOUND = "Alert not found: ";
+    private static final String UNKNOWN_SERVICE = "Unknown Service";
 
     private final AlertRepository alertRepository;
     private final AlertRuleRepository alertRuleRepository;
@@ -126,7 +129,7 @@ public class AlertService {
     @Transactional
     public Alert acknowledgeAlert(Long alertId, String acknowledgedBy) {
         Alert alert = alertRepository.findById(alertId)
-            .orElseThrow(() -> new IllegalArgumentException("Alert not found: " + alertId));
+            .orElseThrow(() -> new IllegalArgumentException(ALERT_NOT_FOUND + alertId));
 
         if (alert.getStatus() != AlertStatus.OPEN) {
             throw new IllegalStateException("Only OPEN alerts can be acknowledged");
@@ -151,7 +154,7 @@ public class AlertService {
     @Transactional
     public Alert resolveAlert(Long alertId, String resolvedBy, String notes) {
         Alert alert = alertRepository.findById(alertId)
-            .orElseThrow(() -> new IllegalArgumentException("Alert not found: " + alertId));
+            .orElseThrow(() -> new IllegalArgumentException(ALERT_NOT_FOUND + alertId));
 
         if (alert.getStatus() == AlertStatus.RESOLVED) {
             throw new IllegalStateException("Alert is already resolved");
@@ -175,7 +178,7 @@ public class AlertService {
     @Transactional
     public Alert markAsFalsePositive(Long alertId, String markedBy) {
         Alert alert = alertRepository.findById(alertId)
-            .orElseThrow(() -> new IllegalArgumentException("Alert not found: " + alertId));
+            .orElseThrow(() -> new IllegalArgumentException(ALERT_NOT_FOUND + alertId));
 
         alert.setStatus(AlertStatus.FALSE_POSITIVE);
         alert.setResolvedBy(markedBy);
@@ -195,7 +198,7 @@ public class AlertService {
      */
     public Alert getAlert(Long alertId) {
         return alertRepository.findById(alertId)
-            .orElseThrow(() -> new IllegalArgumentException("Alert not found: " + alertId));
+            .orElseThrow(() -> new IllegalArgumentException(ALERT_NOT_FOUND + alertId));
     }
 
     /**
@@ -287,9 +290,9 @@ public class AlertService {
     // Helper methods
 
     private String buildAlertTitle(AnomalyDetection anomaly, AlertRule alertRule) {
-        return String.format("Anomaly Detected: %s - %s", 
+        return String.format("Anomaly Detected: %s - %s",
             alertRule.getName(),
-            anomaly.getService() != null ? anomaly.getService() : "Unknown Service"
+            anomaly.getService() != null ? anomaly.getService() : UNKNOWN_SERVICE
         );
     }
 
