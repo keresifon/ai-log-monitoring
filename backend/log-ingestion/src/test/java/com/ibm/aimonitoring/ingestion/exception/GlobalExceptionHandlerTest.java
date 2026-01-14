@@ -44,17 +44,17 @@ class GlobalExceptionHandlerTest {
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().get("status")).isEqualTo(400);
-        assertThat(response.getBody().get("error")).isEqualTo("Validation Failed");
-        assertThat(response.getBody()).containsKey("timestamp");
-        assertThat(response.getBody()).containsKey("errors");
+        assertThat(response.getBody())
+            .containsEntry("status", 400)
+            .containsEntry("error", "Validation Failed")
+            .containsKey("timestamp")
+            .containsKey("errors");
         
         @SuppressWarnings("unchecked")
         Map<String, String> errors = (Map<String, String>) response.getBody().get("errors");
-        assertThat(errors).containsKey("level");
-        assertThat(errors).containsKey("message");
-        assertThat(errors.get("level")).isEqualTo("Log level is required");
-        assertThat(errors.get("message")).isEqualTo("Message is required");
+        assertThat(errors)
+            .containsEntry("level", "Log level is required")
+            .containsEntry("message", "Message is required");
     }
 
     @Test
@@ -69,10 +69,11 @@ class GlobalExceptionHandlerTest {
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().get("status")).isEqualTo(500);
-        assertThat(response.getBody().get("error")).isEqualTo("Log Ingestion Failed");
-        assertThat(response.getBody().get("message")).isEqualTo("Failed to publish to RabbitMQ");
-        assertThat(response.getBody()).containsKey("timestamp");
+        assertThat(response.getBody())
+            .containsEntry("status", 500)
+            .containsEntry("error", "Log Ingestion Failed")
+            .containsEntry("message", "Failed to publish to RabbitMQ")
+            .containsKey("timestamp");
     }
 
     @Test
@@ -86,10 +87,11 @@ class GlobalExceptionHandlerTest {
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().get("status")).isEqualTo(500);
-        assertThat(response.getBody().get("error")).isEqualTo("Internal Server Error");
-        assertThat(response.getBody().get("message")).isEqualTo("An unexpected error occurred");
-        assertThat(response.getBody()).containsKey("timestamp");
+        assertThat(response.getBody())
+            .containsEntry("status", 500)
+            .containsEntry("error", "Internal Server Error")
+            .containsEntry("message", "An unexpected error occurred")
+            .containsKey("timestamp");
     }
 
     @Test
@@ -103,7 +105,8 @@ class GlobalExceptionHandlerTest {
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().get("error")).isEqualTo("Internal Server Error");
+        assertThat(response.getBody())
+            .containsEntry("error", "Internal Server Error");
     }
 
     @Test
@@ -115,8 +118,9 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<Map<String, Object>> response = globalExceptionHandler.handleGenericException(exception);
 
         // Assert
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody()).containsKey("timestamp");
+        assertThat(response.getBody())
+            .isNotNull()
+            .containsKey("timestamp");
         assertThat(response.getBody().get("timestamp")).isNotNull();
     }
 }
