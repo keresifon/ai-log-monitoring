@@ -19,6 +19,15 @@ public class RabbitMQInitializer {
         this.rabbitAdmin = rabbitAdmin;
     }
 
+    /**
+     * Custom exception for RabbitMQ initialization failures
+     */
+    public static class RabbitMQInitializationException extends RuntimeException {
+        public RabbitMQInitializationException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     public void initializeRabbitMQ() {
         log.info("Initializing RabbitMQ infrastructure...");
@@ -32,7 +41,7 @@ public class RabbitMQInitializer {
             log.info("  - DLQ: {}", RabbitMQConfig.LOGS_DLQ);
         } catch (Exception e) {
             log.error("✗ Failed to initialize RabbitMQ infrastructure", e);
-            throw new RuntimeException("RabbitMQ initialization failed", e);
+            throw new RabbitMQInitializationException("RabbitMQ initialization failed", e);
         }
     }
 }

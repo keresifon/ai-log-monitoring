@@ -20,6 +20,10 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String TIMESTAMP_KEY = "timestamp";
+    private static final String STATUS_KEY = "status";
+    private static final String ERROR_KEY = "error";
+
     /**
      * Handle validation errors
      */
@@ -28,16 +32,16 @@ public class GlobalExceptionHandler {
             MethodArgumentNotValidException ex) {
         
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
+        ex.getBindingResult().getAllErrors().forEach(error -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
 
         Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", Instant.now().toString());
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("error", "Validation Failed");
+        response.put(TIMESTAMP_KEY, Instant.now().toString());
+        response.put(STATUS_KEY, HttpStatus.BAD_REQUEST.value());
+        response.put(ERROR_KEY, "Validation Failed");
         response.put("errors", errors);
 
         log.warn("Validation error: {}", errors);
@@ -53,9 +57,9 @@ public class GlobalExceptionHandler {
             LogIngestionService.LogIngestionException ex) {
         
         Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", Instant.now().toString());
-        response.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        response.put("error", "Log Ingestion Failed");
+        response.put(TIMESTAMP_KEY, Instant.now().toString());
+        response.put(STATUS_KEY, HttpStatus.INTERNAL_SERVER_ERROR.value());
+        response.put(ERROR_KEY, "Log Ingestion Failed");
         response.put("message", ex.getMessage());
 
         log.error("Log ingestion error: {}", ex.getMessage(), ex);
@@ -70,9 +74,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
         
         Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", Instant.now().toString());
-        response.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        response.put("error", "Internal Server Error");
+        response.put(TIMESTAMP_KEY, Instant.now().toString());
+        response.put(STATUS_KEY, HttpStatus.INTERNAL_SERVER_ERROR.value());
+        response.put(ERROR_KEY, "Internal Server Error");
         response.put("message", "An unexpected error occurred");
 
         log.error("Unexpected error: {}", ex.getMessage(), ex);
