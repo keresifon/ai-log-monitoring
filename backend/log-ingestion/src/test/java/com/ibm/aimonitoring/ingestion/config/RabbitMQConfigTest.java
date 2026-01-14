@@ -48,9 +48,10 @@ class RabbitMQConfigTest {
         assertThat(queue).isNotNull();
         assertThat(queue.getName()).isEqualTo(RabbitMQConfig.LOGS_RAW_QUEUE);
         assertThat(queue.isDurable()).isTrue();
-        assertThat(queue.getArguments()).containsKey("x-dead-letter-exchange");
-        assertThat(queue.getArguments()).containsKey("x-dead-letter-routing-key");
-        assertThat(queue.getArguments().get("x-dead-letter-routing-key")).isEqualTo(RabbitMQConfig.LOGS_DLQ);
+        assertThat(queue.getArguments())
+                .containsKey("x-dead-letter-exchange")
+                .containsKey("x-dead-letter-routing-key")
+                .containsEntry("x-dead-letter-routing-key", RabbitMQConfig.LOGS_DLQ);
     }
 
     @Test

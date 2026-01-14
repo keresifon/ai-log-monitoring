@@ -27,7 +27,7 @@ class LogLevelTest {
 
     @Test
     void shouldConvertStringToLogLevel() {
-        // Act & Assert
+        // Act & Assert - test each level individually
         assertThat(LogLevel.valueOf("ERROR")).isEqualTo(LogLevel.ERROR);
         assertThat(LogLevel.valueOf("WARN")).isEqualTo(LogLevel.WARN);
         assertThat(LogLevel.valueOf("INFO")).isEqualTo(LogLevel.INFO);
@@ -37,7 +37,7 @@ class LogLevelTest {
 
     @Test
     void shouldHaveCorrectEnumNames() {
-        // Assert
+        // Assert - verify enum name() method
         assertThat(LogLevel.ERROR.name()).isEqualTo("ERROR");
         assertThat(LogLevel.WARN.name()).isEqualTo("WARN");
         assertThat(LogLevel.INFO.name()).isEqualTo("INFO");
@@ -48,7 +48,7 @@ class LogLevelTest {
     @Test
     void shouldHaveCorrectOrdinalValues() {
         // Assert - ordinals should match declaration order
-        assertThat(LogLevel.ERROR.ordinal()).isEqualTo(0);
+        assertThat(LogLevel.ERROR.ordinal()).isZero();
         assertThat(LogLevel.WARN.ordinal()).isEqualTo(1);
         assertThat(LogLevel.INFO.ordinal()).isEqualTo(2);
         assertThat(LogLevel.DEBUG.ordinal()).isEqualTo(3);
