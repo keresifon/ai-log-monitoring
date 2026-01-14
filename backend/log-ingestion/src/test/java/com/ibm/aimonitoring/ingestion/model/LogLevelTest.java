@@ -1,6 +1,8 @@
 package com.ibm.aimonitoring.ingestion.model;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,53 +17,66 @@ class LogLevelTest {
         LogLevel[] levels = LogLevel.values();
 
         // Assert
-        assertThat(levels).hasSize(5);
-        assertThat(levels).containsExactly(
-                LogLevel.ERROR,
-                LogLevel.WARN,
-                LogLevel.INFO,
-                LogLevel.DEBUG,
-                LogLevel.TRACE
-        );
+        assertThat(levels)
+                .hasSize(5)
+                .containsExactly(
+                        LogLevel.ERROR,
+                        LogLevel.WARN,
+                        LogLevel.INFO,
+                        LogLevel.DEBUG,
+                        LogLevel.TRACE
+                );
     }
 
-    @Test
-    void shouldConvertStringToLogLevel() {
+    @ParameterizedTest
+    @CsvSource({
+            "ERROR,ERROR",
+            "WARN,WARN",
+            "INFO,INFO",
+            "DEBUG,DEBUG",
+            "TRACE,TRACE"
+    })
+    void shouldConvertStringToLogLevel(String input, LogLevel expected) {
         // Act & Assert
-        assertThat(LogLevel.valueOf("ERROR")).isEqualTo(LogLevel.ERROR);
-        assertThat(LogLevel.valueOf("WARN")).isEqualTo(LogLevel.WARN);
-        assertThat(LogLevel.valueOf("INFO")).isEqualTo(LogLevel.INFO);
-        assertThat(LogLevel.valueOf("DEBUG")).isEqualTo(LogLevel.DEBUG);
-        assertThat(LogLevel.valueOf("TRACE")).isEqualTo(LogLevel.TRACE);
+        assertThat(LogLevel.valueOf(input)).isEqualTo(expected);
     }
 
-    @Test
-    void shouldHaveCorrectEnumNames() {
+    @ParameterizedTest
+    @CsvSource({
+            "ERROR,ERROR",
+            "WARN,WARN",
+            "INFO,INFO",
+            "DEBUG,DEBUG",
+            "TRACE,TRACE"
+    })
+    void shouldHaveCorrectEnumNames(LogLevel level, String expectedName) {
         // Assert
-        assertThat(LogLevel.ERROR.name()).isEqualTo("ERROR");
-        assertThat(LogLevel.WARN.name()).isEqualTo("WARN");
-        assertThat(LogLevel.INFO.name()).isEqualTo("INFO");
-        assertThat(LogLevel.DEBUG.name()).isEqualTo("DEBUG");
-        assertThat(LogLevel.TRACE.name()).isEqualTo("TRACE");
+        assertThat(level.name()).isEqualTo(expectedName);
     }
 
-    @Test
-    void shouldHaveCorrectOrdinalValues() {
-        // Assert - ordinals should match declaration order
-        assertThat(LogLevel.ERROR.ordinal()).isZero();
-        assertThat(LogLevel.WARN.ordinal()).isEqualTo(1);
-        assertThat(LogLevel.INFO.ordinal()).isEqualTo(2);
-        assertThat(LogLevel.DEBUG.ordinal()).isEqualTo(3);
-        assertThat(LogLevel.TRACE.ordinal()).isEqualTo(4);
+    @ParameterizedTest
+    @CsvSource({
+            "ERROR,0",
+            "WARN,1",
+            "INFO,2",
+            "DEBUG,3",
+            "TRACE,4"
+    })
+    void shouldHaveCorrectOrdinalValues(LogLevel level, int expectedOrdinal) {
+        // Assert
+        assertThat(level.ordinal()).isEqualTo(expectedOrdinal);
     }
 
-    @Test
-    void shouldSupportEnumComparison() {
-        // Assert - verify severity ordering
-        assertThat(LogLevel.ERROR.compareTo(LogLevel.WARN)).isNegative();
-        assertThat(LogLevel.WARN.compareTo(LogLevel.INFO)).isNegative();
-        assertThat(LogLevel.INFO.compareTo(LogLevel.DEBUG)).isNegative();
-        assertThat(LogLevel.DEBUG.compareTo(LogLevel.TRACE)).isNegative();
+    @ParameterizedTest
+    @CsvSource({
+            "ERROR,WARN",
+            "WARN,INFO",
+            "INFO,DEBUG",
+            "DEBUG,TRACE"
+    })
+    void shouldSupportEnumComparison(LogLevel lower, LogLevel higher) {
+        // Assert - lower severity has lower ordinal
+        assertThat(lower.compareTo(higher)).isNegative();
     }
 
     @Test
