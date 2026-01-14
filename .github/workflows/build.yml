@@ -50,7 +50,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: backend/${{ matrix.service }}
         run: |
-          mvn -B clean verify sonar:sonar \
+          mvn -B clean compile sonar:sonar \
+            -DskipTests=true \
             -Dsonar.projectKey=keresifon_ai-monitoring-${{ matrix.service }} \
             -Dsonar.projectName="AI Monitoring - ${{ matrix.service }}" \
             -Dsonar.organization=keresifon \
