@@ -6,6 +6,7 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -13,6 +14,13 @@ import org.springframework.web.client.RestTemplate;
  * Uses mocked external dependencies to avoid requiring actual services.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(properties = {
+    "spring.datasource.url=jdbc:postgresql://localhost:5432/aimonitoring",
+    "spring.datasource.username=postgres",
+    "spring.datasource.password=postgres",
+    "spring.jpa.hibernate.ddl-auto=create-drop",
+    "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect"
+})
 class LogProcessorServiceApplicationTests {
 
     @MockBean
