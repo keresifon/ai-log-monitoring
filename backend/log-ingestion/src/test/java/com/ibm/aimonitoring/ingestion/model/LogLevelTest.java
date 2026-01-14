@@ -27,7 +27,7 @@ class LogLevelTest {
 
     @Test
     void shouldConvertStringToLogLevel() {
-        // Act & Assert - test each level individually
+        // Act & Assert
         assertThat(LogLevel.valueOf("ERROR")).isEqualTo(LogLevel.ERROR);
         assertThat(LogLevel.valueOf("WARN")).isEqualTo(LogLevel.WARN);
         assertThat(LogLevel.valueOf("INFO")).isEqualTo(LogLevel.INFO);
@@ -37,7 +37,7 @@ class LogLevelTest {
 
     @Test
     void shouldHaveCorrectEnumNames() {
-        // Assert - verify enum name() method
+        // Assert
         assertThat(LogLevel.ERROR.name()).isEqualTo("ERROR");
         assertThat(LogLevel.WARN.name()).isEqualTo("WARN");
         assertThat(LogLevel.INFO.name()).isEqualTo("INFO");
@@ -57,11 +57,11 @@ class LogLevelTest {
 
     @Test
     void shouldSupportEnumComparison() {
-        // Assert - ERROR has highest severity (lowest ordinal)
-        assertThat(LogLevel.ERROR.ordinal()).isLessThan(LogLevel.WARN.ordinal());
-        assertThat(LogLevel.WARN.ordinal()).isLessThan(LogLevel.INFO.ordinal());
-        assertThat(LogLevel.INFO.ordinal()).isLessThan(LogLevel.DEBUG.ordinal());
-        assertThat(LogLevel.DEBUG.ordinal()).isLessThan(LogLevel.TRACE.ordinal());
+        // Assert - verify severity ordering
+        assertThat(LogLevel.ERROR.compareTo(LogLevel.WARN)).isNegative();
+        assertThat(LogLevel.WARN.compareTo(LogLevel.INFO)).isNegative();
+        assertThat(LogLevel.INFO.compareTo(LogLevel.DEBUG)).isNegative();
+        assertThat(LogLevel.DEBUG.compareTo(LogLevel.TRACE)).isNegative();
     }
 
     @Test
