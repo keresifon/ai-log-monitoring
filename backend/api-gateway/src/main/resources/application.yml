@@ -5,9 +5,37 @@ spring:
   application:
     name: api-gateway
   
+  # Exclude Spring Security auto-configuration to use custom JWT filter
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.reactive.ReactiveUserDetailsServiceAutoConfiguration
+  
   cloud:
     gateway:
       routes:
+        # Authentication Service Routes
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: authServiceCircuitBreaker
+                fallbackUri: forward:/fallback/auth-service
+        
+        # Log Search Routes (Log Processor)
+        - id: log-search-service
+          uri: ${LOG_PROCESSOR_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/logs/search**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: logProcessorCircuitBreaker
+                fallbackUri: forward:/fallback/log-processor
+        
         # Log Ingestion Service Routes
         - id: log-ingestion-service
           uri: ${LOG_INGESTION_URL:http://localhost:8081}
@@ -23,6 +51,17 @@ spring:
                 redis-rate-limiter.replenishRate: 10
                 redis-rate-limiter.burstCapacity: 20
                 redis-rate-limiter.requestedTokens: 1
+        
+        # Dashboard Routes (must come before general log routes)
+        - id: dashboard-service
+          uri: ${LOG_PROCESSOR_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/dashboard/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: dashboardCircuitBreaker
+                fallbackUri: forward:/fallback/dashboard
         
         # Log Processor Service Routes
         - id: log-processor-service
@@ -85,10 +124,24 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:changeme}
 
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET}
+
 # Resilience4j Circuit Breaker Configuration
 resilience4j:
   circuitbreaker:
     instances:
+      authServiceCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+      
       logIngestionCircuitBreaker:
         registerHealthIndicator: true
         slidingWindowSize: 10
@@ -131,6 +184,8 @@ resilience4j:
 
   timelimiter:
     instances:
+      authServiceCircuitBreaker:
+        timeoutDuration: 3s
       logIngestionCircuitBreaker:
         timeoutDuration: 3s
       logProcessorCircuitBreaker:

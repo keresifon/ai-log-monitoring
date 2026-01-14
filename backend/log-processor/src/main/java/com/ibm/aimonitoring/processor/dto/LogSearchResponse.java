@@ -20,12 +20,12 @@ public class LogSearchResponse {
     /**
      * List of log entries matching the search criteria
      */
-    private List<Map<String, Object>> logs;
+    private List<LogEntryDTO> logs;
     
     /**
      * Total number of matching logs
      */
-    private long totalHits;
+    private long total;
     
     /**
      * Current page number
@@ -36,21 +36,6 @@ public class LogSearchResponse {
      * Page size
      */
     private int size;
-    
-    /**
-     * Total number of pages
-     */
-    private int totalPages;
-    
-    /**
-     * Query execution time in milliseconds
-     */
-    private long took;
-    
-    /**
-     * Aggregations (if requested)
-     */
-    private Map<String, Object> aggregations;
 }
 
 // Made with Bob

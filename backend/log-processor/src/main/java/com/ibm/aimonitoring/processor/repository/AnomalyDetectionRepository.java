@@ -44,6 +44,12 @@ public interface AnomalyDetectionRepository extends JpaRepository<AnomalyDetecti
      */
     @Query("SELECT a FROM AnomalyDetection a WHERE a.isAnomaly = true AND a.confidence > :threshold ORDER BY a.confidence DESC, a.detectedAt DESC")
     List<AnomalyDetection> findHighConfidenceAnomalies(@Param("threshold") Double threshold);
+    
+    /**
+     * Find anomalies detected after a specific time
+     */
+    @Query("SELECT a FROM AnomalyDetection a WHERE a.isAnomaly = true AND a.detectedAt > :startTime ORDER BY a.detectedAt DESC")
+    List<AnomalyDetection> findByDetectedAtAfterOrderByDetectedAtDesc(@Param("startTime") Instant startTime);
 }
 
 // Made with Bob

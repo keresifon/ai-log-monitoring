@@ -2,11 +2,23 @@ package com.ibm.aimonitoring.processor.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.Result;
+import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.indices.CreateIndexResponse;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
-import com.ibm.aimonitoring.processor.dto.LogEntryDTO;
+import co.elastic.clients.json.JsonData;
+import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.json.JsonData;
+import com.ibm.aimonitoring.processor.dto.*;
+import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
+import com.ibm.aimonitoring.processor.dto.*;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,8 +26,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Service for Elasticsearch operations
@@ -149,6 +164,7 @@ public class ElasticsearchService {
         return document;
     }
 
+
     /**
      * Check if Elasticsearch is available
      */
@@ -158,6 +174,283 @@ public class ElasticsearchService {
         } catch (IOException e) {
             log.error("Elasticsearch ping failed: {}", e.getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Search logs with filters and pagination
+     *
+     * @param request the search request
+     * @return search response with results
+     */
+    public LogSearchResponse searchLogs(LogSearchRequest request) {
+        try {
+            SearchResponse<Map> response = elasticsearchClient.search(s -> {
+                // Build the search query
+                s.index(indexName)
+                 .from(request.getPage() * request.getSize())
+                 .size(request.getSize())
+                 .sort(sort -> sort.field(f -> f
+                     .field(request.getSortBy())
+                     .order(request.getSortOrder().equalsIgnoreCase("asc") ? 
+                            SortOrder.Asc : SortOrder.Desc)
+                 ));
+
+                // Add query filters
+                s.query(q -> q.bool(b -> {
+                    // Free text search
+                    if (request.getQuery() != null && !request.getQuery().isEmpty()) {
+                        b.must(m -> m.match(match -> match.field(FIELD_MESSAGE).query(request.getQuery())));
+                    }
+                    
+                    // Level filter
+                    if (request.getLevels() != null && !request.getLevels().isEmpty()) {
+                        b.filter(f -> f.terms(t -> t.field(FIELD_LEVEL).terms(terms -> 
+                            terms.value(request.getLevels().stream()
+                                .map(FieldValue::of)
+                                .collect(Collectors.toList()))
+                        )));
+                    }
+                    
+                    // Service filter
+                    if (request.getServices() != null && !request.getServices().isEmpty()) {
+                        b.filter(f -> f.terms(t -> t.field(FIELD_SERVICE).terms(terms -> 
+                            terms.value(request.getServices().stream()
+                                .map(FieldValue::of)
+                                .collect(Collectors.toList()))
+                        )));
+                    }
+                    
+                    // Time range filter
+                    if (request.getStartTime() != null || request.getEndTime() != null) {
+                        b.filter(f -> f.range(r -> {
+                            r.field(FIELD_TIMESTAMP);
+                            if (request.getStartTime() != null) {
+                                r.gte(JsonData.of(request.getStartTime().toString()));
+                            }
+                            if (request.getEndTime() != null) {
+                                r.lte(JsonData.of(request.getEndTime().toString()));
+                            }
+                            return r;
+                        }));
+                    }
+                    
+                    return b;
+                }));
+                
+                return s;
+            }, Map.class);
+
+            // Convert response to DTO
+            List<LogEntryDTO> logs = response.hits().hits().stream()
+                .map(hit -> convertToLogEntry(hit.source()))
+                .collect(Collectors.toList());
+
+            return LogSearchResponse.builder()
+                .logs(logs)
+                .total(response.hits().total().value())
+                .page(request.getPage())
+                .size(request.getSize())
+                .build();
+
+        } catch (IOException e) {
+            log.error("Failed to search logs: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to search logs", e);
+        }
+    }
+
+    /**
+     * Convert Elasticsearch document to LogEntryDTO
+     */
+    private LogEntryDTO convertToLogEntry(Map<String, Object> document) {
+        LogEntryDTO dto = new LogEntryDTO();
+        dto.setTimestamp(document.get(FIELD_TIMESTAMP) != null ? 
+            Instant.parse(document.get(FIELD_TIMESTAMP).toString()) : null);
+        dto.setLevel(document.get(FIELD_LEVEL) != null ? document.get(FIELD_LEVEL).toString() : null);
+        dto.setMessage(document.get(FIELD_MESSAGE) != null ? document.get(FIELD_MESSAGE).toString() : null);
+        dto.setService(document.get(FIELD_SERVICE) != null ? document.get(FIELD_SERVICE).toString() : null);
+        dto.setHost(document.get(FIELD_HOST) != null ? document.get(FIELD_HOST).toString() : null);
+        dto.setEnvironment(document.get(FIELD_ENVIRONMENT) != null ? document.get(FIELD_ENVIRONMENT).toString() : null);
+        dto.setTraceId(document.get(FIELD_TRACE_ID) != null ? document.get(FIELD_TRACE_ID).toString() : null);
+        dto.setSpanId(document.get(FIELD_SPAN_ID) != null ? document.get(FIELD_SPAN_ID).toString() : null);
+        
+        @SuppressWarnings("unchecked")
+        Map<String, Object> metadata = (Map<String, Object>) document.get(FIELD_METADATA);
+        if (metadata != null) {
+            dto.setMetadata(metadata);
+        }
+        
+        return dto;
+    }
+
+    /**
+     * Get dashboard metrics summary
+     */
+    public DashboardMetricsDTO getDashboardMetrics() {
+        try {
+            // Get total logs count
+            SearchResponse<Map> totalResponse = elasticsearchClient.search(s -> s
+                .index(indexName)
+                .size(0)
+                .query(q -> q.matchAll(m -> m))
+            , Map.class);
+            
+            long totalLogs = totalResponse.hits().total().value();
+            
+            // Get error count
+            SearchResponse<Map> errorResponse = elasticsearchClient.search(s -> s
+                .index(indexName)
+                .size(0)
+                .query(q -> q.term(t -> t.field(FIELD_LEVEL).value("ERROR")))
+            , Map.class);
+            
+            long errorCount = errorResponse.hits().total().value();
+            
+            // Get warning count
+            SearchResponse<Map> warningResponse = elasticsearchClient.search(s -> s
+                .index(indexName)
+                .size(0)
+                .query(q -> q.term(t -> t.field(FIELD_LEVEL).value("WARN")))
+            , Map.class);
+            
+            long warningCount = warningResponse.hits().total().value();
+            
+            // Calculate logs per minute (last 24 hours)
+            double logsPerMinute = totalLogs / (24.0 * 60.0);
+            
+            // Calculate error rate
+            double errorRate = totalLogs > 0 ? (errorCount * 100.0 / totalLogs) : 0.0;
+            
+            return DashboardMetricsDTO.builder()
+                .totalLogs(totalLogs)
+                .errorCount(errorCount)
+                .warningCount(warningCount)
+                .activeAlerts(0)
+                .anomalyCount(0)
+                .logsPerMinute(logsPerMinute)
+                .errorRate(errorRate)
+                .build();
+                
+        } catch (IOException e) {
+            log.error("Failed to get dashboard metrics: {}", e.getMessage(), e);
+            return DashboardMetricsDTO.builder()
+                .totalLogs(0).errorCount(0).warningCount(0)
+                .activeAlerts(0).anomalyCount(0)
+                .logsPerMinute(0.0).errorRate(0.0)
+                .build();
+        }
+    }
+    
+    /**
+     * Get log volume over time
+     */
+    public List<LogVolumeDTO> getLogVolume(Instant startTime, Instant endTime) {
+        try {
+            SearchResponse<Map> response = elasticsearchClient.search(s -> s
+                .index(indexName)
+                .size(0)
+                .query(q -> q.range(r -> r
+                    .field(FIELD_TIMESTAMP)
+                    .gte(JsonData.of(startTime.toString()))
+                    .lte(JsonData.of(endTime.toString()))
+                ))
+                .aggregations("volume_over_time", a -> a
+                    .dateHistogram(dh -> dh
+                        .field(FIELD_TIMESTAMP)
+                        .fixedInterval(fi -> fi.time("1h"))
+                        .minDocCount(0)
+                    )
+                )
+            , Map.class);
+            
+            var buckets = response.aggregations().get("volume_over_time").dateHistogram().buckets().array();
+            
+            return buckets.stream()
+                .map(bucket -> {
+                    // bucket.key() returns a String in Elasticsearch Java client
+                    String keyStr = bucket.keyAsString();
+                    Instant timestamp;
+                    if (keyStr != null && !keyStr.isEmpty()) {
+                        timestamp = Instant.parse(keyStr);
+                    } else {
+                        // Fallback: try to parse as epoch millis
+                        timestamp = Instant.ofEpochMilli(Long.valueOf(bucket.key()));
+                    }
+                    return LogVolumeDTO.builder()
+                        .timestamp(timestamp)
+                        .count(bucket.docCount())
+                        .build();
+                })
+                .collect(Collectors.toList());
+                
+        } catch (Exception e) {
+            log.error("Failed to get log volume: {}", e.getMessage(), e);
+            return List.of();
+        }
+    }
+    
+    /**
+     * Get log level distribution
+     */
+    public List<LogLevelDistributionDTO> getLogLevelDistribution() {
+        try {
+            SearchResponse<Map> response = elasticsearchClient.search(s -> s
+                .index(indexName)
+                .size(0)
+                .aggregations("level_distribution", a -> a
+                    .terms(t -> t.field(FIELD_LEVEL))
+                )
+            , Map.class);
+            
+            long totalLogs = response.hits().total().value();
+            var buckets = response.aggregations().get("level_distribution").sterms().buckets().array();
+            
+            return buckets.stream()
+                .map(bucket -> {
+                    long count = bucket.docCount();
+                    double percentage = totalLogs > 0 ? (count * 100.0 / totalLogs) : 0.0;
+                    return LogLevelDistributionDTO.builder()
+                        .level(bucket.key().stringValue())
+                        .count(count)
+                        .percentage(percentage)
+                        .build();
+                })
+                .collect(Collectors.toList());
+                
+        } catch (Exception e) {
+            log.error("Failed to get log level distribution: {}", e.getMessage(), e);
+            return List.of();
+        }
+    }
+    
+    /**
+     * Get top services by log count
+     */
+    public List<ServiceLogCountDTO> getTopServices(int limit) {
+        try {
+            SearchResponse<Map> response = elasticsearchClient.search(s -> s
+                .index(indexName)
+                .size(0)
+                .aggregations("top_services", a -> a
+                    .terms(t -> t
+                        .field(FIELD_SERVICE)
+                        .size(limit)
+                    )
+                )
+            , Map.class);
+            
+            var buckets = response.aggregations().get("top_services").sterms().buckets().array();
+            
+            return buckets.stream()
+                .map(bucket -> ServiceLogCountDTO.builder()
+                    .service(bucket.key().stringValue())
+                    .count(bucket.docCount())
+                    .build())
+                .collect(Collectors.toList());
+                
+        } catch (Exception e) {
+            log.error("Failed to get top services: {}", e.getMessage(), e);
+            return List.of();
         }
     }
 

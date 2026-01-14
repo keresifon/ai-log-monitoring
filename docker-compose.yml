@@ -172,6 +172,33 @@ services:
       ml-service:
         condition: service_healthy
 
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    container_name: ai-monitoring-auth-service
+    ports:
+      - "${AUTH_SERVICE_PORT:-8084}:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-docker}
+      - DB_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-ai_monitoring}
+      - DB_USERNAME=${POSTGRES_USER:-admin}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+      - JWT_SECRET=${JWT_SECRET:-YourSuperSecretKeyForJWTTokenGenerationMustBeLongEnough123456789}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION:-604800000}
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8084/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    networks:
+      - ai-monitoring-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   api-gateway:
     build:
       context: ./backend/api-gateway
@@ -181,12 +208,14 @@ services:
       - "${API_GATEWAY_PORT:-8080}:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-docker}
+      - JWT_SECRET=${JWT_SECRET}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme}
       - LOG_INGESTION_URL=http://log-ingestion:8081
       - LOG_PROCESSOR_URL=http://log-processor:8082
       - ALERT_SERVICE_URL=http://alert-service:8083
+      - AUTH_SERVICE_URL=http://auth-service:8084
       - ML_SERVICE_URL=http://ml-service:8000
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
@@ -198,6 +227,8 @@ services:
       - ai-monitoring-network
     depends_on:
       redis:
+        condition: service_healthy
+      auth-service:
         condition: service_healthy
       log-ingestion:
         condition: service_healthy

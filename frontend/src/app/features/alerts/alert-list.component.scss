@@ -1,0 +1,228 @@
+// Alert List Component Styles
+
+.alert-list-container {
+  padding: 24px;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 500;
+    }
+
+    button {
+      mat-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  .statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+
+    .stat-card {
+      mat-card-content {
+        display: flex;
+        align-items: center;
+        padding: 16px !important;
+
+        mat-icon {
+          font-size: 40px;
+          width: 40px;
+          height: 40px;
+          margin-right: 16px;
+        }
+
+        .stat-info {
+          h3 {
+            margin: 0 0 4px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(0, 0, 0, 0.6);
+          }
+
+          p {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: rgba(0, 0, 0, 0.87);
+          }
+        }
+      }
+    }
+  }
+
+  .filters-card {
+    margin-bottom: 24px;
+
+    mat-card-content {
+      padding: 16px !important;
+    }
+
+    .filters-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+
+      .search-field {
+        flex: 1;
+        min-width: 250px;
+      }
+
+      mat-form-field {
+        min-width: 150px;
+      }
+
+      button {
+        height: 40px;
+        margin-top: 8px;
+
+        mat-icon {
+          margin-right: 4px;
+        }
+      }
+    }
+  }
+
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    padding: 48px;
+  }
+
+  .table-card {
+    .alerts-table {
+      width: 100%;
+
+      th {
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.87);
+      }
+
+      td {
+        padding: 16px 8px;
+      }
+
+      .alert-title {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        strong {
+          font-size: 14px;
+          color: rgba(0, 0, 0, 0.87);
+        }
+
+        .alert-message {
+          font-size: 12px;
+          color: rgba(0, 0, 0, 0.6);
+          max-width: 400px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      mat-chip {
+        font-size: 12px;
+        min-height: 24px;
+        padding: 0 8px;
+      }
+
+      .no-data {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 48px;
+        color: rgba(0, 0, 0, 0.6);
+
+        mat-icon {
+          font-size: 64px;
+          width: 64px;
+          height: 64px;
+          margin-bottom: 16px;
+        }
+
+        p {
+          font-size: 16px;
+          margin: 0;
+        }
+      }
+    }
+
+    mat-paginator {
+      border-top: 1px solid rgba(0, 0, 0, 0.12);
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .alert-list-container {
+    padding: 16px;
+
+    .header {
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+
+    .statistics-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .filters-card {
+      .filters-row {
+        flex-direction: column;
+        align-items: stretch;
+
+        .search-field,
+        mat-form-field {
+          width: 100%;
+        }
+
+        button {
+          width: 100%;
+        }
+      }
+    }
+
+    .table-card {
+      .alerts-table {
+        .alert-title {
+          .alert-message {
+            max-width: 200px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Snackbar Styles
+::ng-deep {
+  .success-snackbar {
+    background-color: #4caf50 !important;
+    color: white !important;
+  }
+
+  .error-snackbar {
+    background-color: #f44336 !important;
+    color: white !important;
+  }
+}
+
+// Made with Bob
