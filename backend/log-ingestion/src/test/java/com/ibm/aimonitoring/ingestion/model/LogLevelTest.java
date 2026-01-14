@@ -76,7 +76,7 @@ class LogLevelTest {
     })
     void shouldSupportEnumComparison(LogLevel lower, LogLevel higher) {
         // Assert - lower severity has lower ordinal
-        assertThat(lower.compareTo(higher)).isNegative();
+        assertThat(lower).isLessThan(higher);
     }
 
     @Test
