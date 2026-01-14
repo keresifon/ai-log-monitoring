@@ -14,10 +14,6 @@ jobs:
     name: Build and analyze with SonarCloud
     runs-on: ubuntu-latest
     
-    strategy:
-      matrix:
-        service: [log-ingestion, log-processor, alert-service, api-gateway]
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,15 +40,32 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       
-      - name: Build and analyze ${{ matrix.service }}
+      - name: Build log-ingestion
+        working-directory: backend/log-ingestion
+        run: mvn -B clean compile -DskipTests=true
+      
+      - name: Build log-processor
+        working-directory: backend/log-processor
+        run: mvn -B clean compile -DskipTests=true
+      
+      - name: Build alert-service
+        working-directory: backend/alert-service
+        run: mvn -B clean compile -DskipTests=true
+      
+      - name: Build api-gateway
+        working-directory: backend/api-gateway
+        run: mvn -B clean compile -DskipTests=true
+      
+      - name: Run SonarCloud Analysis
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        working-directory: backend/${{ matrix.service }}
         run: |
-          mvn -B clean compile sonar:sonar \
-            -DskipTests=true \
-            -Dsonar.projectKey=keresifon_ai-monitoring-${{ matrix.service }} \
-            -Dsonar.projectName="AI Monitoring - ${{ matrix.service }}" \
+          mvn -B sonar:sonar \
+            -f backend/log-ingestion/pom.xml \
+            -Dsonar.projectKey=keresifon_ai-log-monitoring \
+            -Dsonar.projectName="AI Log Monitoring System" \
             -Dsonar.organization=keresifon \
-            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.sources=src/main/java \
+            -Dsonar.java.binaries=target/classes
