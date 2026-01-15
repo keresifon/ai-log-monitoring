@@ -75,25 +75,28 @@ cd ai-log-monitor-application
 # 2. Start local dependencies
 docker-compose up -d
 
-# 3. Follow the Quick Start Guide
-# See QUICK_START.md for detailed instructions
+# 3. Start all services
+./scripts/deploy-all-services.sh
 ```
-
-**Complete setup guide**: [QUICK_START.md](QUICK_START.md)
 
 ## 📚 Documentation
 
-### Planning & Architecture
-- **[EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md)** - High-level overview and key decisions
-- **[PROJECT_PLAN.md](PROJECT_PLAN.md)** - Complete 12-week development roadmap
-- **[QUICK_START.md](QUICK_START.md)** - Get up and running in minutes
-- **[AI_PROMPTS.md](AI_PROMPTS.md)** - AI-assisted code generation prompts
+### Getting Started
+1. **Environment Setup**: Copy `.env.example` to `.env` and configure your environment variables
+2. **Start Services**: Run `./scripts/deploy-all-services.sh` to start all services
+3. **Access the Application**: 
+   - Frontend: http://localhost:80
+   - API Gateway: http://localhost:8080
+   - Health Checks: http://localhost:8080/actuator/health
 
-### Development Guides (Coming Soon)
-- `docs/ARCHITECTURE.md` - Detailed system architecture
-- `docs/API.md` - API documentation
-- `docs/DEVELOPMENT.md` - Development workflow and guidelines
-- `docs/DEPLOYMENT.md` - Kubernetes deployment guide
+### Service Documentation
+Each service has its own README with detailed documentation:
+- `backend/api-gateway/README.md` - API Gateway service
+- `backend/auth-service/README.md` - Authentication service
+- `backend/log-ingestion/README.md` - Log ingestion service
+- `backend/log-processor/README.md` - Log processing service
+- `backend/alert-service/README.md` - Alert service
+- `backend/ml-service/README.md` - ML/Anomaly detection service
 
 ## 🛠️ Technology Stack
 
@@ -153,7 +156,7 @@ docker-compose up -d
 - Kubernetes manifests
 - CI/CD pipeline
 
-**Detailed breakdown**: [PROJECT_PLAN.md](PROJECT_PLAN.md)
+**Development Timeline**: See the project structure and service READMEs for detailed implementation guides.
 
 ## 🎯 Success Metrics
 
@@ -228,16 +231,34 @@ docker build -t frontend:latest frontend
 
 ## 🐛 Troubleshooting
 
-See [QUICK_START.md](QUICK_START.md#troubleshooting) for common issues and solutions.
+### Common Issues
+
+**Services won't start:**
+- Check that all required environment variables are set in `.env`
+- Verify Docker is running: `docker ps`
+- Check service logs: `docker-compose logs <service-name>`
+
+**Port conflicts:**
+- Ensure ports 80, 8080, 8082, 8083, 8084, 5432, 6379, 9200, 5672 are available
+- Modify port mappings in `docker-compose.yml` if needed
+
+**Database connection errors:**
+- Wait for PostgreSQL to be healthy: `docker-compose ps postgres`
+- Check database credentials in `.env`
+
+**CORS errors:**
+- Ensure `CORS_ALLOWED_ORIGINS` is set in `.env`
+- Verify the frontend URL is included in the allowed origins list
 
 ## 📊 Project Status
 
-**Current Phase**: Planning Complete ✅
+**Current Phase**: Development in Progress 🚀
 
-**Next Steps**:
-1. Complete Task 1-3 from [QUICK_START.md](QUICK_START.md)
-2. Verify "Hello World" milestone
-3. Begin Week 2 development
+**Getting Started**:
+1. Configure environment variables in `.env`
+2. Start all services: `./scripts/deploy-all-services.sh`
+3. Access the frontend at http://localhost:80
+4. Check service health: `docker-compose ps`
 
 **Progress Tracking**: See GitHub Issues and Project Board
 
@@ -261,8 +282,10 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ---
 
-**Ready to start building?** 🚀
+**Ready to start?** 🚀
 
-Begin with [QUICK_START.md](QUICK_START.md) and complete the first 3 tasks today!
+1. Configure your `.env` file with required environment variables
+2. Run `./scripts/deploy-all-services.sh` to start all services
+3. Access the application at http://localhost:80
 
-For questions or issues, please open a GitHub issue or refer to the comprehensive documentation in this repository.
+For questions or issues, please open a GitHub issue or refer to the service-specific README files in each backend service directory.

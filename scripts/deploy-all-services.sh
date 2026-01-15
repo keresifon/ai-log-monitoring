@@ -104,13 +104,19 @@ echo ""
 
 # Start application services
 echo -e "${YELLOW}Step 8: Starting application services...${NC}"
-docker-compose up -d log-ingestion log-processor api-gateway alert-service
+docker-compose up -d auth-service log-ingestion log-processor api-gateway alert-service
 echo -e "${GREEN}✓ Application services started${NC}"
 echo ""
 
 # Wait for services to start
 echo -e "${YELLOW}Step 9: Waiting for services to initialize (60 seconds)...${NC}"
 sleep 60
+echo ""
+
+# Start frontend (depends on API Gateway)
+echo -e "${YELLOW}Step 10: Starting frontend...${NC}"
+docker-compose up -d frontend
+echo -e "${GREEN}✓ Frontend started${NC}"
 echo ""
 
 # Check service status
@@ -131,10 +137,12 @@ services=(
     "Elasticsearch:9200"
     "RabbitMQ:15672"
     "ML Service:8000/api/v1/health"
+    "Auth Service:8084/actuator/health"
     "Log Ingestion:8080/actuator/health"
-    "Log Processor:8081/actuator/health"
-    "API Gateway:8082/actuator/health"
+    "Log Processor:8082/actuator/health"
+    "API Gateway:8080/actuator/health"
     "Alert Service:8083/actuator/health"
+    "Frontend:80/health"
 )
 
 for service in "${services[@]}"; do
@@ -163,10 +171,14 @@ echo ""
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}Service Access Information${NC}"
 echo -e "${BLUE}========================================${NC}"
+echo -e "${GREEN}Web Application:${NC}"
+echo "  • Frontend:       http://localhost:80"
+echo ""
 echo -e "${GREEN}API Endpoints:${NC}"
+echo "  • API Gateway:    http://localhost:8080"
+echo "  • Auth Service:   http://localhost:8084"
 echo "  • Log Ingestion:  http://localhost:8080"
-echo "  • Log Processor:  http://localhost:8081"
-echo "  • API Gateway:    http://localhost:8082"
+echo "  • Log Processor:  http://localhost:8082"
 echo "  • Alert Service:  http://localhost:8083"
 echo "  • ML Service:     http://localhost:8000"
 echo ""
@@ -177,10 +189,11 @@ echo "  • RabbitMQ UI:    http://localhost:15672 (guest/guest)"
 echo "  • Redis:          localhost:6379"
 echo ""
 echo -e "${GREEN}Health Checks:${NC}"
+echo "  • curl http://localhost:80/health"
 echo "  • curl http://localhost:8080/actuator/health"
-echo "  • curl http://localhost:8081/actuator/health"
 echo "  • curl http://localhost:8082/actuator/health"
 echo "  • curl http://localhost:8083/actuator/health"
+echo "  • curl http://localhost:8084/actuator/health"
 echo "  • curl http://localhost:8000/api/v1/health"
 echo ""
 

@@ -101,12 +101,18 @@ spring:
                 fallbackUri: forward:/fallback/ml-service
       
       # Global CORS configuration
+      # Note: CORS is configured programmatically in CorsConfig.java
+      # using CORS_ALLOWED_ORIGINS environment variable
       globalcors:
         cors-configurations:
           '[/**]':
             allowedOrigins: 
               - "http://localhost:4200"
               - "http://localhost:3000"
+              - "http://localhost:80"
+              - "http://localhost"
+              - "http://frontend:80"
+              - "http://frontend"
             allowedMethods:
               - GET
               - POST
