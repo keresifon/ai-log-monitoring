@@ -27,7 +27,7 @@
         <!-- Search -->
         <mat-form-field appearance="outline" class="filter-field">
           <mat-label>Search message</mat-label>
-          <input matInput [formControl]="searchControl" placeholder="Search in messages..." aria-label="Search logs">
+          <input matInput [formControl]="searchControl" aria-label="Search logs">
           <mat-icon matPrefix>search</mat-icon>
           <button mat-icon-button matSuffix *ngIf="searchControl.value" (click)="searchControl.setValue('')" aria-label="Clear search">
             <mat-icon>close</mat-icon>
@@ -49,7 +49,7 @@
         <!-- Service Filter -->
         <mat-form-field appearance="outline" class="filter-field">
           <mat-label>Service</mat-label>
-          <input matInput [formControl]="serviceControl" [matAutocomplete]="auto" placeholder="Filter by service" aria-label="Filter by service">
+          <input matInput [formControl]="serviceControl" [matAutocomplete]="auto" aria-label="Filter by service">
           <mat-icon matPrefix>dns</mat-icon>
           <mat-autocomplete #auto="matAutocomplete">
             <mat-option *ngFor="let service of filteredServices" [value]="service">

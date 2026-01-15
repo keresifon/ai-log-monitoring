@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", schema = "auth_service")
 @Data
 public class User {
     @Id
@@ -20,15 +20,15 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "password_hash", nullable = false)
     private String password;
 
     private String firstName;
     private String lastName;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "role")
+    // Roles are stored in user_roles table with role_id (integer FK to roles table)
+    // This is a transient field - roles are loaded/assigned via service layer
+    @Transient
     private Set<String> roles = new HashSet<>();
 
     private LocalDateTime createdAt;
@@ -37,9 +37,7 @@ public class User {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (roles.isEmpty()) {
-            roles.add("USER");
-        }
+        // Roles are handled in service layer, not here
     }
 }
 

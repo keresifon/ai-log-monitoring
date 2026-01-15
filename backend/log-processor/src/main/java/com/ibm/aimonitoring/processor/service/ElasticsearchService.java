@@ -363,7 +363,24 @@ public class ElasticsearchService {
                 )
             , Map.class);
             
-            var buckets = response.aggregations().get("volume_over_time").dateHistogram().buckets().array();
+            if (response.aggregations() == null || !response.aggregations().containsKey("volume_over_time")) {
+                log.warn("No volume_over_time aggregation found in response");
+                return List.of();
+            }
+            
+            var agg = response.aggregations().get("volume_over_time");
+            if (agg == null) {
+                log.warn("Volume over time aggregation is null");
+                return List.of();
+            }
+            
+            if (!agg.isDateHistogram()) {
+                log.warn("Volume over time aggregation is not a date histogram");
+                return List.of();
+            }
+            
+            var buckets = agg.dateHistogram().buckets().array();
+            log.debug("Found {} log volume buckets", buckets.size());
             
             return buckets.stream()
                 .map(bucket -> {
@@ -385,6 +402,7 @@ public class ElasticsearchService {
                 
         } catch (Exception e) {
             log.error("Failed to get log volume: {}", e.getMessage(), e);
+            e.printStackTrace();
             return List.of();
         }
     }
@@ -403,22 +421,56 @@ public class ElasticsearchService {
             , Map.class);
             
             long totalLogs = response.hits().total().value();
-            var buckets = response.aggregations().get("level_distribution").sterms().buckets().array();
+            log.debug("Total logs for level distribution: {}", totalLogs);
             
-            return buckets.stream()
-                .map(bucket -> {
-                    long count = bucket.docCount();
-                    double percentage = totalLogs > 0 ? (count * 100.0 / totalLogs) : 0.0;
-                    return LogLevelDistributionDTO.builder()
-                        .level(bucket.key().stringValue())
-                        .count(count)
-                        .percentage(percentage)
-                        .build();
-                })
-                .collect(Collectors.toList());
+            if (response.aggregations() == null || !response.aggregations().containsKey("level_distribution")) {
+                log.warn("No level_distribution aggregation found in response");
+                return List.of();
+            }
+            
+            var agg = response.aggregations().get("level_distribution");
+            if (agg == null) {
+                log.warn("Level distribution aggregation is null");
+                return List.of();
+            }
+            
+            // Try both sterms() and lterms() as the field might be mapped differently
+            if (agg.isSterms()) {
+                var buckets = agg.sterms().buckets().array();
+                log.debug("Found {} level distribution buckets (sterms)", buckets.size());
+                return buckets.stream()
+                    .map(bucket -> {
+                        long count = bucket.docCount();
+                        double percentage = totalLogs > 0 ? (count * 100.0 / totalLogs) : 0.0;
+                        return LogLevelDistributionDTO.builder()
+                            .level(bucket.key().stringValue())
+                            .count(count)
+                            .percentage(percentage)
+                            .build();
+                    })
+                    .collect(Collectors.toList());
+            } else if (agg.isLterms()) {
+                var buckets = agg.lterms().buckets().array();
+                log.debug("Found {} level distribution buckets (lterms)", buckets.size());
+                return buckets.stream()
+                    .map(bucket -> {
+                        long count = bucket.docCount();
+                        double percentage = totalLogs > 0 ? (count * 100.0 / totalLogs) : 0.0;
+                        return LogLevelDistributionDTO.builder()
+                            .level(String.valueOf(bucket.key()))
+                            .count(count)
+                            .percentage(percentage)
+                            .build();
+                    })
+                    .collect(Collectors.toList());
+            } else {
+                log.warn("Could not extract buckets from level_distribution aggregation - not sterms or lterms");
+                return List.of();
+            }
                 
         } catch (Exception e) {
             log.error("Failed to get log level distribution: {}", e.getMessage(), e);
+            e.printStackTrace();
             return List.of();
         }
     }
@@ -439,17 +491,44 @@ public class ElasticsearchService {
                 )
             , Map.class);
             
-            var buckets = response.aggregations().get("top_services").sterms().buckets().array();
+            if (response.aggregations() == null || !response.aggregations().containsKey("top_services")) {
+                log.warn("No top_services aggregation found in response");
+                return List.of();
+            }
             
-            return buckets.stream()
-                .map(bucket -> ServiceLogCountDTO.builder()
-                    .service(bucket.key().stringValue())
-                    .count(bucket.docCount())
-                    .build())
-                .collect(Collectors.toList());
+            var agg = response.aggregations().get("top_services");
+            if (agg == null) {
+                log.warn("Top services aggregation is null");
+                return List.of();
+            }
+            
+            // Try both sterms() and lterms() as the field might be mapped differently
+            if (agg.isSterms()) {
+                var buckets = agg.sterms().buckets().array();
+                log.debug("Found {} top service buckets (sterms)", buckets.size());
+                return buckets.stream()
+                    .map(bucket -> ServiceLogCountDTO.builder()
+                        .service(bucket.key().stringValue())
+                        .count(bucket.docCount())
+                        .build())
+                    .collect(Collectors.toList());
+            } else if (agg.isLterms()) {
+                var buckets = agg.lterms().buckets().array();
+                log.debug("Found {} top service buckets (lterms)", buckets.size());
+                return buckets.stream()
+                    .map(bucket -> ServiceLogCountDTO.builder()
+                        .service(String.valueOf(bucket.key()))
+                        .count(bucket.docCount())
+                        .build())
+                    .collect(Collectors.toList());
+            } else {
+                log.warn("Could not extract buckets from top_services aggregation - not sterms or lterms");
+                return List.of();
+            }
                 
         } catch (Exception e) {
             log.error("Failed to get top services: {}", e.getMessage(), e);
+            e.printStackTrace();
             return List.of();
         }
     }

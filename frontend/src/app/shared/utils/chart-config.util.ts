@@ -10,29 +10,33 @@ export class ChartConfigUtil {
   private static readonly commonOptions: Partial<ChartOptions> = {
     responsive: true,
     maintainAspectRatio: false,
+    backgroundColor: '#ffffff',
     plugins: {
       legend: {
         display: true,
         position: 'top',
         labels: {
           usePointStyle: true,
-          padding: 15,
+          padding: 12,
           font: {
-            size: 12
-          }
+            size: 11,
+            weight: 'normal'
+          },
+          color: 'rgba(0, 0, 0, 0.6)'
         }
       },
       tooltip: {
         enabled: true,
         mode: 'index',
         intersect: false,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleColor: '#fff',
-        bodyColor: '#fff',
-        borderColor: '#ddd',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        titleColor: 'rgba(0, 0, 0, 0.87)',
+        bodyColor: 'rgba(0, 0, 0, 0.6)',
+        borderColor: 'rgba(0, 0, 0, 0.12)',
         borderWidth: 1,
-        padding: 10,
-        displayColors: true
+        padding: 8,
+        displayColors: true,
+        boxPadding: 4
       }
     }
   };
@@ -51,24 +55,24 @@ export class ChartConfigUtil {
     debug: '#9e9e9e',
     trace: '#607d8b',
     
-    // Chart colors
-    blue: 'rgba(33, 150, 243, 0.8)',
-    red: 'rgba(244, 67, 54, 0.8)',
-    green: 'rgba(76, 175, 80, 0.8)',
-    orange: 'rgba(255, 152, 0, 0.8)',
-    purple: 'rgba(156, 39, 176, 0.8)',
-    teal: 'rgba(0, 150, 136, 0.8)',
-    pink: 'rgba(233, 30, 99, 0.8)',
-    indigo: 'rgba(63, 81, 181, 0.8)',
-    cyan: 'rgba(0, 188, 212, 0.8)',
-    lime: 'rgba(205, 220, 57, 0.8)',
+    // Chart colors - muted palette
+    blue: 'rgba(100, 149, 237, 0.6)',
+    red: 'rgba(220, 100, 100, 0.6)',
+    green: 'rgba(120, 180, 120, 0.6)',
+    orange: 'rgba(240, 160, 100, 0.6)',
+    purple: 'rgba(180, 140, 200, 0.6)',
+    teal: 'rgba(100, 180, 180, 0.6)',
+    pink: 'rgba(220, 140, 180, 0.6)',
+    indigo: 'rgba(130, 150, 200, 0.6)',
+    cyan: 'rgba(100, 200, 220, 0.6)',
+    lime: 'rgba(180, 220, 120, 0.6)',
     
     // Transparent versions
-    blueTransparent: 'rgba(33, 150, 243, 0.2)',
-    redTransparent: 'rgba(244, 67, 54, 0.2)',
-    greenTransparent: 'rgba(76, 175, 80, 0.2)',
-    orangeTransparent: 'rgba(255, 152, 0, 0.2)',
-    purpleTransparent: 'rgba(156, 39, 176, 0.2)'
+    blueTransparent: 'rgba(100, 149, 237, 0.15)',
+    redTransparent: 'rgba(220, 100, 100, 0.15)',
+    greenTransparent: 'rgba(120, 180, 120, 0.15)',
+    orangeTransparent: 'rgba(240, 160, 100, 0.15)',
+    purpleTransparent: 'rgba(180, 140, 200, 0.15)'
   };
 
   /**
@@ -103,8 +107,15 @@ export class ChartConfigUtil {
               display: true,
               text: 'Time',
               font: {
-                size: 12,
-                weight: 'bold'
+                size: 11,
+                weight: 'normal'
+              },
+              color: 'rgba(0, 0, 0, 0.6)'
+            },
+            ticks: {
+              color: 'rgba(0, 0, 0, 0.5)',
+              font: {
+                size: 10
               }
             },
             grid: {
@@ -117,13 +128,22 @@ export class ChartConfigUtil {
               display: true,
               text: 'Number of Logs',
               font: {
-                size: 12,
-                weight: 'bold'
+                size: 11,
+                weight: 'normal'
+              },
+              color: 'rgba(0, 0, 0, 0.6)'
+            },
+            ticks: {
+              color: 'rgba(0, 0, 0, 0.5)',
+              font: {
+                size: 10
               }
             },
             beginAtZero: true,
             grid: {
-              color: 'rgba(0, 0, 0, 0.05)'
+              color: 'rgba(0, 0, 0, 0.05)',
+              drawBorder: false,
+              borderColor: 'rgba(0, 0, 0, 0.05)'
             }
           }
         },
@@ -133,9 +153,10 @@ export class ChartConfigUtil {
             display: true,
             text: 'Log Volume Over Time',
             font: {
-              size: 16,
-              weight: 'bold'
+              size: 12,
+              weight: 'normal'
             },
+            color: 'rgba(0, 0, 0, 0.6)',
             padding: {
               top: 10,
               bottom: 20
@@ -176,9 +197,10 @@ export class ChartConfigUtil {
             display: true,
             text: 'Log Level Distribution',
             font: {
-              size: 16,
-              weight: 'bold'
+              size: 12,
+              weight: 'normal'
             },
+            color: 'rgba(0, 0, 0, 0.6)',
             padding: {
               top: 10,
               bottom: 20
@@ -192,7 +214,8 @@ export class ChartConfigUtil {
               padding: 15,
               font: {
                 size: 12
-              }
+              },
+              color: 'rgba(0, 0, 0, 0.6)'
             }
           }
         }
@@ -228,13 +251,22 @@ export class ChartConfigUtil {
               display: true,
               text: 'Number of Logs',
               font: {
-                size: 12,
-                weight: 'bold'
+                size: 11,
+                weight: 'normal'
+              },
+              color: 'rgba(0, 0, 0, 0.6)'
+            },
+            ticks: {
+              color: 'rgba(0, 0, 0, 0.5)',
+              font: {
+                size: 10
               }
             },
             beginAtZero: true,
             grid: {
-              color: 'rgba(0, 0, 0, 0.05)'
+              color: 'rgba(0, 0, 0, 0.05)',
+              drawBorder: false,
+              borderColor: 'rgba(0, 0, 0, 0.05)'
             }
           },
           y: {
@@ -243,8 +275,15 @@ export class ChartConfigUtil {
               display: true,
               text: 'Service Name',
               font: {
-                size: 12,
-                weight: 'bold'
+                size: 11,
+                weight: 'normal'
+              },
+              color: 'rgba(0, 0, 0, 0.6)'
+            },
+            ticks: {
+              color: 'rgba(0, 0, 0, 0.5)',
+              font: {
+                size: 10
               }
             },
             grid: {
@@ -258,9 +297,10 @@ export class ChartConfigUtil {
             display: true,
             text: 'Top Services by Log Count',
             font: {
-              size: 16,
-              weight: 'bold'
+              size: 12,
+              weight: 'normal'
             },
+            color: 'rgba(0, 0, 0, 0.6)',
             padding: {
               top: 10,
               bottom: 20
@@ -318,12 +358,21 @@ export class ChartConfigUtil {
               display: true,
               text: 'Time',
               font: {
-                size: 12,
-                weight: 'bold'
+                size: 11,
+                weight: 'normal'
+              },
+              color: 'rgba(0, 0, 0, 0.6)'
+            },
+            ticks: {
+              color: 'rgba(0, 0, 0, 0.5)',
+              font: {
+                size: 10
               }
             },
             grid: {
-              color: 'rgba(0, 0, 0, 0.05)'
+              color: 'rgba(0, 0, 0, 0.05)',
+              drawBorder: false,
+              borderColor: 'rgba(0, 0, 0, 0.05)'
             }
           },
           y: {
@@ -331,14 +380,23 @@ export class ChartConfigUtil {
               display: true,
               text: 'Anomaly Score',
               font: {
-                size: 12,
-                weight: 'bold'
+                size: 11,
+                weight: 'normal'
+              },
+              color: 'rgba(0, 0, 0, 0.6)'
+            },
+            ticks: {
+              color: 'rgba(0, 0, 0, 0.5)',
+              font: {
+                size: 10
               }
             },
             beginAtZero: true,
             max: 1,
             grid: {
-              color: 'rgba(0, 0, 0, 0.05)'
+              color: 'rgba(0, 0, 0, 0.05)',
+              drawBorder: false,
+              borderColor: 'rgba(0, 0, 0, 0.05)'
             }
           }
         },
@@ -348,9 +406,10 @@ export class ChartConfigUtil {
             display: true,
             text: 'Anomaly Detection Timeline',
             font: {
-              size: 16,
-              weight: 'bold'
+              size: 12,
+              weight: 'normal'
             },
+            color: 'rgba(0, 0, 0, 0.6)',
             padding: {
               top: 10,
               bottom: 20

@@ -6,6 +6,8 @@ import com.ibm.aimonitoring.auth.model.User;
 import com.ibm.aimonitoring.auth.repository.RefreshTokenRepository;
 import com.ibm.aimonitoring.auth.repository.UserRepository;
 import com.ibm.aimonitoring.auth.security.JwtTokenProvider;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,6 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -27,6 +32,9 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final AuthenticationManager authenticationManager;
+    
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Value("${jwt.expiration}")
     private long jwtExpiration;
@@ -50,9 +58,11 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
-        user.getRoles().add("USER");
 
         user = userRepository.save(user);
+        
+        // Assign USER role by inserting into user_roles table
+        assignRoleToUser(user.getId(), "USER");
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
@@ -115,14 +125,48 @@ public class AuthService {
         return refreshToken.getToken();
     }
 
+    /**
+     * Assign a role to a user by inserting into user_roles table
+     */
+    private void assignRoleToUser(Long userId, String roleName) {
+        entityManager.createNativeQuery(
+            "INSERT INTO auth_service.user_roles (user_id, role_id) " +
+            "SELECT :userId, r.id FROM auth_service.roles r WHERE r.name = :roleName " +
+            "ON CONFLICT DO NOTHING"
+        )
+        .setParameter("userId", userId)
+        .setParameter("roleName", roleName)
+        .executeUpdate();
+    }
+    
+    /**
+     * Load role names for a user from the database
+     */
+    private Set<String> loadUserRoles(Long userId) {
+        @SuppressWarnings("unchecked")
+        List<String> roleNames = entityManager.createNativeQuery(
+            "SELECT r.name FROM auth_service.user_roles ur " +
+            "JOIN auth_service.roles r ON ur.role_id = r.id " +
+            "WHERE ur.user_id = :userId"
+        )
+        .setParameter("userId", userId)
+        .getResultList();
+        
+        return new HashSet<>(roleNames);
+    }
+
     private UserDTO mapToDTO(User user) {
+        // Load roles from database
+        Set<String> roles = loadUserRoles(user.getId());
+        user.setRoles(roles);
+        
         UserDTO dto = new UserDTO();
         dto.setId(user.getId().toString());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
         dto.setFirstName(user.getFirstName());
         dto.setLastName(user.getLastName());
-        dto.setRoles(user.getRoles());
+        dto.setRoles(roles);
         dto.setCreatedAt(user.getCreatedAt());
         dto.setLastLogin(user.getLastLogin());
         return dto;

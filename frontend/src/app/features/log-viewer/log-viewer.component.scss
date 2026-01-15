@@ -9,21 +9,25 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 
   h1 {
     display: flex;
     align-items: center;
     gap: 12px;
     margin: 0;
-    font-size: 28px;
-    font-weight: 500;
+    font-size: 24px;
+    font-weight: 400;
     color: rgba(0, 0, 0, 0.87);
+    letter-spacing: -0.5px;
 
     mat-icon {
-      font-size: 32px;
-      width: 32px;
-      height: 32px;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      opacity: 0.7;
     }
   }
 
@@ -36,6 +40,28 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      color: rgba(0, 0, 0, 0.87);
+
+      mat-icon {
+        color: rgba(0, 0, 0, 0.87);
+      }
+
+      &.mat-stroked-button {
+        border-color: rgba(0, 0, 0, 0.12);
+        color: rgba(0, 0, 0, 0.87);
+
+        mat-icon {
+          color: rgba(0, 0, 0, 0.87);
+        }
+      }
+
+      &.mat-icon-button {
+        color: rgba(0, 0, 0, 0.87);
+
+        mat-icon {
+          color: rgba(0, 0, 0, 0.87);
+        }
+      }
     }
   }
 }
@@ -43,7 +69,20 @@
 // Filters Card
 .filters-card {
   margin-bottom: 24px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  mat-card-content {
+    background-color: #ffffff;
+    padding: 20px !important;
+  }
 
   .filters-grid {
     display: grid;
@@ -60,6 +99,171 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      color: rgba(0, 0, 0, 0.87);
+
+      mat-icon {
+        color: rgba(0, 0, 0, 0.87);
+      }
+    }
+  }
+}
+
+// Ensure form fields have visible text and icons
+::ng-deep {
+  // Direct input targeting for log viewer - apply to all inputs
+  .log-viewer-container {
+    input[matInput],
+    input.mat-mdc-input-element,
+    input.mdc-text-field__input,
+    input[type="text"],
+    input[type="email"],
+    input[type="search"],
+    textarea {
+      color: #000000 !important;
+      -webkit-text-fill-color: #000000 !important;
+      caret-color: #000000 !important;
+    }
+
+    .mdc-text-field__input {
+      color: #000000 !important;
+      -webkit-text-fill-color: #000000 !important;
+      caret-color: #000000 !important;
+    }
+  }
+
+  .filters-card {
+    mat-form-field {
+      // Ensure proper label positioning to prevent overlap
+      .mat-mdc-text-field-wrapper {
+        .mat-mdc-form-field-flex {
+          // Floating label styling
+          .mat-mdc-floating-label {
+            color: rgba(0, 0, 0, 0.6) !important;
+            
+            // When label is floating (field has value or is focused)
+            &.mdc-floating-label--float-above {
+              color: rgba(0, 0, 0, 0.6) !important;
+            }
+          }
+
+          // Input control container
+          .mat-mdc-form-field-input-control {
+            input,
+            textarea {
+              color: #000000 !important;
+              -webkit-text-fill-color: #000000 !important;
+              caret-color: #000000 !important;
+              padding-top: 0 !important;
+              padding-bottom: 0 !important;
+            }
+          }
+        }
+      }
+
+      // Label styling
+      .mat-mdc-form-field-label {
+        color: rgba(0, 0, 0, 0.6) !important;
+      }
+
+      // Icon styling
+      .mat-mdc-form-field-icon-prefix,
+      .mat-mdc-form-field-icon-suffix {
+        mat-icon {
+          color: rgba(0, 0, 0, 0.6) !important;
+        }
+      }
+
+      // Select arrow visibility
+      .mat-mdc-select-arrow {
+        color: rgba(0, 0, 0, 0.6) !important;
+      }
+
+      // Select value text
+      .mat-mdc-select-value {
+        color: #000000 !important;
+      }
+
+      // Select panel (dropdown)
+      .mat-mdc-select-panel {
+        .mat-mdc-option {
+          color: rgba(0, 0, 0, 0.87) !important;
+
+          &.mdc-list-item--selected {
+            color: rgba(0, 0, 0, 0.87) !important;
+          }
+        }
+      }
+
+      // Date picker icon
+      .mat-datepicker-toggle {
+        .mat-icon-button {
+          mat-icon {
+            color: rgba(0, 0, 0, 0.6) !important;
+          }
+        }
+      }
+
+      // Placeholder text - only show when field is empty and not focused
+      input::placeholder,
+      textarea::placeholder {
+        color: rgba(0, 0, 0, 0.4) !important;
+        opacity: 1 !important;
+      }
+
+      // Direct input targeting - highest priority
+      input[matInput],
+      input.mat-mdc-input-element,
+      input.mdc-text-field__input,
+      textarea[matInput],
+      textarea.mat-mdc-input-element {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        caret-color: #000000 !important;
+      }
+
+      // MDC text field input
+      .mdc-text-field__input {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        caret-color: #000000 !important;
+      }
+
+      // For Material 15+ (MDC) - ensure proper label floating
+      &.mat-mdc-form-field {
+        // When input has value or is focused, label should float
+        &.mat-focused,
+        &.mat-form-field-has-value {
+          .mat-mdc-text-field-wrapper {
+            .mat-mdc-form-field-flex {
+              .mat-mdc-floating-label {
+                transform: translateY(-1.5em) scale(0.75) !important;
+                color: rgba(0, 0, 0, 0.6) !important;
+              }
+            }
+          }
+        }
+
+        // Ensure input text is properly positioned
+        .mat-mdc-text-field-wrapper {
+          .mat-mdc-form-field-flex {
+            .mat-mdc-form-field-input-control {
+              input {
+                // Ensure input has proper padding to avoid label overlap
+                padding-top: 16px !important;
+                padding-bottom: 16px !important;
+              }
+            }
+
+            // Floating label when above
+            .mat-mdc-floating-label {
+              &.mdc-floating-label--float-above {
+                transform: translateY(-1.5em) scale(0.75) !important;
+                color: rgba(0, 0, 0, 0.6) !important;
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
@@ -110,9 +314,16 @@
 // Table Container
 .table-container {
   background: white;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: none;
   overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
 }
 
 // Table Styles
@@ -121,15 +332,20 @@
   background: white;
 
   th {
-    background-color: #f5f5f5;
-    font-weight: 600;
-    color: rgba(0, 0, 0, 0.87);
+    background-color: #ffffff;
+    font-weight: 400;
+    color: rgba(0, 0, 0, 0.6);
     padding: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
   }
 
   td {
     padding: 12px 16px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    color: rgba(0, 0, 0, 0.87);
   }
 
   .timestamp {
@@ -154,12 +370,14 @@
 
   .message-cell {
     max-width: 500px;
+    color: rgba(0, 0, 0, 0.87);
     
     span {
       display: block;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      color: rgba(0, 0, 0, 0.87);
     }
   }
 
@@ -200,6 +418,37 @@
 // Paginator
 mat-paginator {
   border-top: 1px solid rgba(0, 0, 0, 0.12);
+  background-color: #ffffff;
+
+  ::ng-deep {
+    .mat-mdc-paginator-container {
+      color: rgba(0, 0, 0, 0.87) !important;
+    }
+
+    .mat-mdc-icon-button {
+      color: rgba(0, 0, 0, 0.87) !important;
+
+      mat-icon {
+        color: rgba(0, 0, 0, 0.87) !important;
+      }
+
+      &:disabled {
+        color: rgba(0, 0, 0, 0.26) !important;
+
+        mat-icon {
+          color: rgba(0, 0, 0, 0.26) !important;
+        }
+      }
+    }
+
+    .mat-mdc-select-value {
+      color: rgba(0, 0, 0, 0.87) !important;
+    }
+
+    .mat-mdc-select-arrow {
+      color: rgba(0, 0, 0, 0.6) !important;
+    }
+  }
 }
 
 // Results Info
@@ -209,15 +458,18 @@ mat-paginator {
   gap: 8px;
   margin-top: 16px;
   padding: 12px 16px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 14px;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 0;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 12px;
+  letter-spacing: 0.3px;
 
   mat-icon {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    opacity: 0.6;
   }
 
   .auto-refresh-indicator {
@@ -225,8 +477,8 @@ mat-paginator {
     display: flex;
     align-items: center;
     gap: 4px;
-    color: #4caf50;
-    font-weight: 500;
+    color: rgba(0, 0, 0, 0.5);
+    font-weight: 400;
   }
 }
 

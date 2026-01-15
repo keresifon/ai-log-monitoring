@@ -8,10 +8,11 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
-import { Subject } from 'rxjs';
+import { Subject, interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { AlertService } from '../../../core/services/alert.service';
 import { User } from '../../models/auth.model';
 
 /**
@@ -40,9 +41,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   notificationCount = 0;
   private destroy$ = new Subject<void>();
+  private readonly REFRESH_INTERVAL = 30000; // 30 seconds
 
   constructor(
     private authService: AuthService,
+    private alertService: AlertService,
     private router: Router
   ) {}
 
@@ -54,9 +57,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.currentUser = user;
       });
 
-    // TODO: Subscribe to notification service for count
-    // For now, using mock data
-    this.notificationCount = 3;
+    // Load active alerts count for notifications
+    this.loadNotificationCount();
+    this.startAutoRefresh();
   }
 
   ngOnDestroy(): void {
@@ -86,10 +89,38 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Navigate to notifications page
+   * Navigate to notifications page (alerts page)
    */
   goToNotifications(): void {
-    this.router.navigate(['/notifications']);
+    this.router.navigate(['/alerts']);
+  }
+
+  /**
+   * Load active alerts count for notification badge
+   */
+  private loadNotificationCount(): void {
+    this.alertService.getStatistics()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (stats) => {
+          this.notificationCount = stats.activeAlerts || 0;
+        },
+        error: (error) => {
+          console.error('Failed to load alert statistics:', error);
+          this.notificationCount = 0;
+        }
+      });
+  }
+
+  /**
+   * Auto-refresh notification count
+   */
+  private startAutoRefresh(): void {
+    interval(this.REFRESH_INTERVAL)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.loadNotificationCount();
+      });
   }
 
   /**

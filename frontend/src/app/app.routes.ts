@@ -4,6 +4,8 @@ import { LogViewerComponent } from './features/log-viewer/log-viewer.component';
 import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
 import { AlertListComponent } from './features/alerts/alert-list.component';
+import { AnalyticsComponent } from './features/analytics/analytics.component';
+import { ReportsComponent } from './features/reports/reports.component';
 import { authGuard, guestGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -35,6 +37,16 @@ export const routes: Routes = [
   {
     path: 'alerts',
     component: AlertListComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'analytics',
+    component: AnalyticsComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'reports',
+    component: ReportsComponent,
     canActivate: [authGuard]
   },
   {

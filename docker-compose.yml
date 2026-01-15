@@ -181,7 +181,7 @@ services:
       - "${AUTH_SERVICE_PORT:-8084}:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-docker}
-      - DB_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-ai_monitoring}
+      - DB_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-ai_monitoring}?currentSchema=auth_service
       - DB_USERNAME=${POSTGRES_USER:-admin}
       - DB_PASSWORD=${POSTGRES_PASSWORD:-changeme}
       - JWT_SECRET=${JWT_SECRET:-YourSuperSecretKeyForJWTTokenGenerationMustBeLongEnough123456789}
